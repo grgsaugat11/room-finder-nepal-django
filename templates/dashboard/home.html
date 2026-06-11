@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="dashboard-section">
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        <p class="dashboard-subtitle">
+            Manage pending, approved, and rejected room listings.
+        </p>
+
+        <div class="stats-grid stats-grid-four">
+            <a href="{% url 'pending_listings' %}" class="stat-card">
+                <h2>{{ pending_count }}</h2>
+                <p>Pending Listings</p>
+            </a>
+
+            <a href="{% url 'approved_listings' %}" class="stat-card">
+                <h2>{{ approved_count }}</h2>
+                <p>Approved Listings</p>
+            </a>
+
+            <a href="{% url 'rejected_listings' %}" class="stat-card">
+                <h2>{{ rejected_count }}</h2>
+                <p>Rejected Listings</p>
+            </a>
+
+            <a href="{% url 'reports_queue' %}" class="stat-card">
+                <h2>{{ pending_reports_count }}</h2>
+                <p>Pending Reports</p>
+            </a>
+        </div>
+
+        <div class="dashboard-card ad-stats-card">
+            <h2>Advertisement Stats</h2>
+
+            <div class="ad-stats-grid">
+                <div>
+                    <span>Active Ads</span>
+                    <strong>{{ active_ads_count }}</strong>
+                </div>
+
+                <div>
+                    <span>Total Impressions</span>
+                    <strong>{{ total_ad_impressions }}</strong>
+                </div>
+
+                <div>
+                    <span>Total Clicks</span>
+                    <strong>{{ total_ad_clicks }}</strong>
+                </div>
+
+                <div>
+                    <span>Phone Reveals</span>
+                    <strong>{{ phone_reveals_count }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <h2>Recent Pending Listings</h2>
+
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Owner</th>
+                        <th>Location</th>
+                        <th>Rent</th>
+                        <th>Submitted</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for listing in recent_pending %}
+                        <tr>
+                            <td>{{ listing.title }}</td>
+                            <td>{{ listing.owner.get_full_name }}</td>
+                            <td>{{ listing.district.name }}, {{ listing.city }}</td>
+                            <td>NPR {{ listing.monthly_rent }}</td>
+                            <td>{{ listing.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'review_listing' listing.pk %}" class="table-btn">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">No pending listings.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

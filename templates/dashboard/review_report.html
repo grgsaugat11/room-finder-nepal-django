@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="dashboard-section">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1>Review Report</h1>
+                <p>Check the tenant report and take action if needed.</p>
+            </div>
+
+            <a href="{% url 'reports_queue' %}" class="table-btn">Back to Reports</a>
+        </div>
+
+        <div class="review-layout">
+            <div class="dashboard-card">
+                <h2>Reported Listing</h2>
+
+                <p><strong>Title:</strong> {{ report.listing.title }}</p>
+                <p><strong>Owner:</strong> {{ report.listing.owner.get_full_name }}</p>
+                <p><strong>Owner Email:</strong> {{ report.listing.owner.email }}</p>
+                <p><strong>Owner Phone:</strong> {{ report.listing.owner.phone }}</p>
+                <p><strong>Location:</strong> {{ report.listing.area }}, {{ report.listing.city }}, {{ report.listing.district.name }}, {{ report.listing.province.name }}</p>
+                <p><strong>Rent:</strong> NPR {{ report.listing.monthly_rent }}</p>
+                <p><strong>Listing Status:</strong> {{ report.listing.get_status_display }}</p>
+
+                <h3>Description</h3>
+                <p>{{ report.listing.description }}</p>
+
+                <h3>Property Images</h3>
+                <div class="review-image-grid">
+                    {% for image in report.listing.images.all %}
+                        <a href="{{ image.image.url }}" target="_blank">
+                            <img src="{{ image.image.url }}" alt="{{ report.listing.title }}">
+                        </a>
+                    {% empty %}
+                        <p>No images uploaded.</p>
+                    {% endfor %}
+                </div>
+
+                {% if report.listing.status == 'approved' %}
+                    <br>
+                    <a href="{% url 'listing_detail' report.listing.pk %}" class="table-btn" target="_blank">
+                        View Public Listing
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="dashboard-card">
+                <h2>Report Details</h2>
+
+                <p><strong>Reported By:</strong> {{ report.reported_by.get_full_name }}</p>
+                <p><strong>Reporter Email:</strong> {{ report.reported_by.email }}</p>
+                <p><strong>Reason:</strong> {{ report.get_reason_display }}</p>
+                <p><strong>Status:</strong> {{ report.get_status_display }}</p>
+                <p><strong>Reported At:</strong> {{ report.created_at|date:"M d, Y H:i" }}</p>
+
+                <h3>Tenant Description</h3>
+                <div class="report-description-box">
+                    {{ report.description }}
+                </div>
+
+                <form method="POST" action="{% url 'update_report_status' report.pk %}" class="report-action-form">
+                    {% csrf_token %}
+
+                    <div class="field">
+                        <label>Update Report Status</label>
+                        <select name="status">
+                            {% for value, label in report.STATUS_CHOICES %}
+                                <option value="{{ value }}"
+                                    {% if report.status == value %}selected{% endif %}
+                                >
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>Admin Notes</label>
+                        <textarea name="admin_notes" rows="5" placeholder="Write review notes...">{{ report.admin_notes }}</textarea>
+                    </div>
+
+                    <button type="submit" class="approve-btn">
+                        Update Report
+                    </button>
+                </form>
+
+                {% if report.listing.status == 'approved' %}
+                    <form method="POST" action="{% url 'remove_reported_listing' report.pk %}" class="danger-form">
+                        {% csrf_token %}
+
+                        <button type="submit" class="reject-btn">
+                            Remove Listing from Public
+                        </button>
+                    </form>
+                {% endif %}
+
+                {% if report.reviewed_at %}
+                    <div class="reviewed-box">
+                        Reviewed at: {{ report.reviewed_at|date:"M d, Y H:i" }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

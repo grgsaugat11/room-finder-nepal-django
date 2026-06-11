@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="profile-section">
+    <div class="container">
+        <div class="profile-layout">
+
+            <aside class="profile-sidebar">
+                <div class="profile-avatar">
+                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                </div>
+
+                <h2>{{ request.user.get_full_name }}</h2>
+                <p>{{ request.user.email }}</p>
+
+                <span class="role-pill role-{{ request.user.role }}">
+                    {{ request.user.get_role_display }}
+                </span>
+
+                {% if request.user.email_verified %}
+                    <span class="verified-profile">Email Verified</span>
+                {% else %}
+                    <span class="unverified-profile">Email Not Verified</span>
+                {% endif %}
+
+                <a href="{% url 'edit_profile' %}" class="profile-action-btn">
+                    Edit Profile
+                </a>
+
+                {% if request.user.is_landlord %}
+                    <a href="{% url 'landlord_dashboard' %}" class="profile-action-btn secondary">
+                        Landlord Dashboard
+                    </a>
+                {% endif %}
+            </aside>
+
+            <div class="profile-main">
+                <div class="profile-card">
+                    <h1>Profile Information</h1>
+
+                    <div class="profile-info-grid">
+                        <div>
+                            <span>First Name</span>
+                            <strong>{{ request.user.first_name }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Last Name</span>
+                            <strong>{{ request.user.last_name }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Email Address</span>
+                            <strong>{{ request.user.email }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Phone Number</span>
+                            <strong>{{ request.user.phone }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Account Role</span>
+                            <strong>{{ request.user.get_role_display }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Email Status</span>
+                            <strong>
+                                {% if request.user.email_verified %}
+                                    Verified
+                                {% else %}
+                                    Not Verified
+                                {% endif %}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                {% if request.user.is_landlord %}
+                    <div class="profile-card">
+                        <h2>Landlord Quick Actions</h2>
+
+                        <div class="quick-action-grid">
+                            <a href="{% url 'create_listing' %}">
+                                <strong>Post New Room</strong>
+                                <span>Create a new room/property listing.</span>
+                            </a>
+
+                            <a href="{% url 'my_listings' %}">
+                                <strong>My Listings</strong>
+                                <span>View pending, approved, and rejected listings.</span>
+                            </a>
+
+                            <a href="{% url 'landlord_dashboard' %}">
+                                <strong>Dashboard</strong>
+                                <span>Track stats and listing performance.</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

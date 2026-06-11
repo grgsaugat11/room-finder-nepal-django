@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="dashboard-section">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1>Review Listing</h1>
+                <p>Check property details, images, and verification documents.</p>
+            </div>
+
+            <a href="{% url 'pending_listings' %}" class="table-btn">Back</a>
+        </div>
+
+        <div class="review-layout">
+            <div class="dashboard-card">
+                <h2>{{ listing.title }}</h2>
+
+                <p><strong>Owner:</strong> {{ listing.owner.get_full_name }}</p>
+                <p><strong>Email:</strong> {{ listing.owner.email }}</p>
+                <p><strong>Phone:</strong> {{ listing.owner.phone }}</p>
+                <p><strong>Location:</strong> {{ listing.area }}, {{ listing.city }}, {{ listing.district.name }}, {{ listing.province.name }}</p>
+                <p><strong>Rent:</strong> NPR {{ listing.monthly_rent }}</p>
+                <p><strong>Security Deposit:</strong> NPR {{ listing.security_deposit }}</p>
+                <p><strong>Property Type:</strong> {{ listing.get_property_type_display }}</p>
+                <p><strong>Status:</strong> {{ listing.get_status_display }}</p>
+
+                <h3>Description</h3>
+                <p>{{ listing.description }}</p>
+
+                {% if listing.rules %}
+                    <h3>Rules</h3>
+                    <p>{{ listing.rules }}</p>
+                {% endif %}
+
+                <h3>Property Images</h3>
+                <div class="review-image-grid">
+                    {% for image in listing.images.all %}
+                        <a href="{{ image.image.url }}" target="_blank">
+                            <img src="{{ image.image.url }}" alt="{{ listing.title }}">
+                        </a>
+                    {% empty %}
+                        <p>No images uploaded.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h2>Verification Documents</h2>
+
+                {% if listing.documents %}
+                    <div class="document-list">
+                        <a href="{{ listing.documents.citizenship_front.url }}" target="_blank">
+                            Citizenship Front
+                        </a>
+
+                        <a href="{{ listing.documents.citizenship_back.url }}" target="_blank">
+                            Citizenship Back
+                        </a>
+
+                        <a href="{{ listing.documents.lalpurja.url }}" target="_blank">
+                            Lalpurja
+                        </a>
+
+                        <a href="{{ listing.documents.selfie_with_citizenship.url }}" target="_blank">
+                            Selfie with Citizenship
+                        </a>
+                    </div>
+
+                    <p>
+                        <strong>Document Status:</strong>
+                        {{ listing.documents.get_verification_status_display }}
+                    </p>
+                {% else %}
+                    <p>No documents uploaded.</p>
+                {% endif %}
+
+                <div class="approval-actions">
+                    {% if listing.status != 'approved' %}
+                        <form method="POST" action="{% url 'approve_listing' listing.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="approve-btn">
+                                Approve Listing
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {% if listing.status != 'rejected' %}
+                        <form method="POST" action="{% url 'reject_listing' listing.pk %}">
+                            {% csrf_token %}
+
+                            <div class="field">
+                                <label>Rejection Reason</label>
+                                <textarea
+                                    name="rejection_reason"
+                                    rows="5"
+                                    placeholder="Write reason for rejection..."
+                                ></textarea>
+                            </div>
+
+                            <button type="submit" class="reject-btn">
+                                Reject Listing
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                {% if listing.rejection_reason %}
+                    <div class="reject-box">
+                        <strong>Previous Rejection Reason:</strong>
+                        {{ listing.rejection_reason }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

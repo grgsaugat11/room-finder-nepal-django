@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="auth-section">
+    <div class="auth-card">
+        <h1>Login</h1>
+        <p>Access your Room Finder account.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="field">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="submit-btn">Login</button>
+        </form>
+
+        <p class="auth-link">
+            Don’t have an account?
+            <a href="{% url 'register' %}">Register</a>
+        </p>
+    </div>
+</section>
+
+{% endblock %}

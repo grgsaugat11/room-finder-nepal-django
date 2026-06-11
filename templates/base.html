@@ -1,0 +1,108 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Room Finder Nepal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="container nav-content">
+        <a href="{% url 'home' %}" class="logo">Room Finder</a>
+
+        <nav>
+            <a href="{% url 'home' %}"
+               class="{% if request.resolver_match.url_name == 'home' %}active-nav{% endif %}">
+                Home
+            </a>
+
+            {% if request.user.is_authenticated %}
+
+                <a href="{% url 'profile' %}"
+                   class="{% if request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'edit_profile' %}active-nav{% endif %}">
+                    Profile
+                </a>
+
+                <a href="{% url 'my_favorites' %}"
+                   class="{% if request.resolver_match.url_name == 'my_favorites' %}active-nav{% endif %}">
+                    Favorites
+                </a>
+
+                {% if request.user.is_landlord %}
+                    <a href="{% url 'landlord_dashboard' %}"
+                       class="{% if request.resolver_match.url_name == 'landlord_dashboard' %}active-nav{% endif %}">
+                        Landlord
+                    </a>
+
+                    <a href="{% url 'create_listing' %}"
+                       class="{% if request.resolver_match.url_name == 'create_listing' %}active-nav{% endif %}">
+                        Post Room
+                    </a>
+
+                    <a href="{% url 'my_listings' %}"
+                       class="{% if request.resolver_match.url_name == 'my_listings' or request.resolver_match.url_name == 'edit_listing' or request.resolver_match.url_name == 'delete_listing' %}active-nav{% endif %}">
+                        My Listings
+                    </a>
+                {% endif %}
+
+                {% if request.user.is_platform_admin or request.user.is_superuser %}
+                    <a href="{% url 'dashboard_home' %}"
+                       class="{% if request.path|slice:':11' == '/dashboard/' %}active-nav{% endif %}">
+                        Dashboard
+                    </a>
+                {% endif %}
+
+                <a href="{% url 'logout' %}">
+                    Logout
+                </a>
+
+            {% else %}
+
+                <a href="{% url 'login' %}"
+                   class="{% if request.resolver_match.url_name == 'login' %}active-nav{% endif %}">
+                    Login
+                </a>
+
+                <a href="{% url 'register' %}"
+                   class="{% if request.resolver_match.url_name == 'register' or request.resolver_match.url_name == 'verify_otp' %}active-nav{% endif %}">
+                    Register
+                </a>
+
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<main>
+    {% if messages %}
+        <div class="toast-wrapper">
+            {% for message in messages %}
+                <div class="toast-message {{ message.tags }}">
+                    {{ message }}
+                    <button type="button" class="toast-close" onclick="this.parentElement.remove()">
+                        ×
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block content %}
+    {% endblock %}
+</main>
+
+<footer class="footer">
+    <p>© Room Finder Nepal — Verified Room Rental Marketplace</p>
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+
+{% block scripts %}
+{% endblock %}
+
+</body>
+</html>

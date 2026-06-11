@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="detail-section">
+    <div class="container detail-layout">
+
+        <div class="detail-main">
+            <div class="gallery">
+                {% for image in listing.images.all %}
+                    <img src="{{ image.image.url }}" alt="{{ listing.title }}">
+                {% empty %}
+                    <div class="no-image detail-no-image">No Images Available</div>
+                {% endfor %}
+            </div>
+
+            {% if detail_below_images_ad %}
+                <div class="real-ad-box detail-ad">
+                    {% if detail_below_images_ad.link %}
+                        <a href="{% url 'ad_click' detail_below_images_ad.id %}" target="_blank">
+                            <img src="{{ detail_below_images_ad.image.url }}" alt="{{ detail_below_images_ad.title }}">
+                        </a>
+                    {% else %}
+                        <img src="{{ detail_below_images_ad.image.url }}" alt="{{ detail_below_images_ad.title }}">
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="detail-card">
+                <h1>{{ listing.title }}</h1>
+
+                <p class="location">
+                    {{ listing.area }}, {{ listing.city }},
+                    {{ listing.district.name }}, {{ listing.province.name }}
+                </p>
+
+                <div class="trust-row">
+                    {% if listing.is_owner_verified %}
+                        <span class="trust-badge">Verified Owner</span>
+                    {% endif %}
+
+                    {% if listing.is_property_verified %}
+                        <span class="trust-badge">Verified Property</span>
+                    {% endif %}
+                </div>
+
+                <h2>Description</h2>
+                <p class="detail-text">{{ listing.description }}</p>
+
+                <h2>Facilities</h2>
+                {% if listing.facilities %}
+                    <div class="facility-grid">
+                        {% if listing.facilities.car_parking %}<span>Car Parking</span>{% endif %}
+                        {% if listing.facilities.bike_parking %}<span>Bike Parking</span>{% endif %}
+                        {% if listing.facilities.wifi %}<span>WiFi</span>{% endif %}
+                        {% if listing.facilities.drinking_water %}<span>Drinking Water</span>{% endif %}
+                        {% if listing.facilities.water_24_7 %}<span>24/7 Water</span>{% endif %}
+                        {% if listing.facilities.attached_bathroom %}<span>Attached Bathroom</span>{% endif %}
+                        {% if listing.facilities.balcony %}<span>Balcony</span>{% endif %}
+                        {% if listing.facilities.furnished %}<span>Furnished</span>{% endif %}
+                        {% if listing.facilities.cctv %}<span>CCTV</span>{% endif %}
+                        {% if listing.facilities.security_guard %}<span>Security Guard</span>{% endif %}
+                        {% if listing.facilities.pet_allowed %}<span>Pet Allowed</span>{% endif %}
+                        {% if listing.facilities.laundry %}<span>Laundry</span>{% endif %}
+                        {% if listing.facilities.kitchen %}<span>Kitchen</span>{% endif %}
+                    </div>
+                {% else %}
+                    <p>No facilities added.</p>
+                {% endif %}
+
+                {% if listing.rules %}
+                    <h2>House Rules</h2>
+                    <p class="detail-text">{{ listing.rules }}</p>
+                {% endif %}
+
+                {% if listing.latitude and listing.longitude %}
+                    <h2>Map Location</h2>
+                    <iframe
+                        width="100%"
+                        height="300"
+                        style="border:0; border-radius: 14px;"
+                        loading="lazy"
+                        allowfullscreen
+                        src="https://www.google.com/maps?q={{ listing.latitude }},{{ listing.longitude }}&output=embed">
+                    </iframe>
+                {% endif %}
+            </div>
+        </div>
+
+        <aside class="detail-sidebar">
+            <div class="price-card">
+                <h2>NPR {{ listing.monthly_rent }}</h2>
+                <p>per month</p>
+
+                <hr>
+
+                <p><strong>Security Deposit:</strong> NPR {{ listing.security_deposit }}</p>
+                <p><strong>Property Type:</strong> {{ listing.get_property_type_display }}</p>
+                <p><strong>Furnished:</strong> {{ listing.get_furnished_status_display }}</p>
+
+                {% if listing.available_date %}
+                    <p><strong>Available From:</strong> {{ listing.available_date }}</p>
+                {% endif %}
+
+                <hr>
+
+                <p><strong>Owner:</strong> {{ listing.owner.get_full_name }}</p>
+                {% if request.user.is_authenticated %}
+                    <a
+                        href="{% url 'toggle_favorite' listing.id %}?next={{ request.path }}"
+                        class="favorite-btn"
+                    >
+                        {% if is_favorited %}
+                            Remove from Favorites
+                        {% else %}
+                            Save to Favorites
+                        {% endif %}
+                    </a>
+
+                    <a
+                        href="{% url 'report_listing' listing.id %}"
+                        class="report-btn"
+                    >
+                        Report Suspicious Listing
+                    </a>
+                {% else %}
+                    <p class="login-hint">
+                        <a href="{% url 'login' %}">Login</a> to save or report this listing.
+                    </p>
+                {% endif %}
+
+                <div class="phone-box">
+                    {% if phone_already_revealed %}
+                        <p id="real-phone">{{ listing.owner.phone }}</p>
+                    {% else %}
+                        <p id="hidden-phone">98XXXXXXXX</p>
+
+                        <button
+                            type="button"
+                            id="reveal-phone-btn"
+                            data-url="{% url 'reveal_phone' listing.id %}"
+                        >
+                            Watch Ad to Reveal Number
+                        </button>
+
+                        <p id="real-phone" style="display:none;"></p>
+                    {% endif %}
+                </div>
+
+                {% if not phone_already_revealed %}
+                <div class="reward-ad-modal" id="reward-ad-modal">
+                    <div class="reward-ad-content">
+                        <div class="reward-ad-header">
+                            <h3>Sponsored Ad</h3>
+                            <span id="ad-countdown">Ad ends in 5s</span>
+                        </div>
+
+                        <div class="reward-video-wrap">
+                            {% if phone_reveal_ad and phone_reveal_ad.video %}
+                                <video id="reward-video" autoplay muted playsinline controls>
+                                    <source src="{{ phone_reveal_ad.video.url }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            {% else %}
+                                <div class="fake-video-ad">
+                                    <h2>Room Finder Sponsored Ad</h2>
+                                    <p>Your phone number will be revealed shortly.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="reward-status" id="reward-status">
+                            Please watch the ad to reveal the phone number.
+                        </div>
+
+                        <div class="reward-actions">
+                            <button type="button" id="skip-ad-btn" disabled>
+                                Skip Ad
+                            </button>
+
+                            <button type="button" id="keep-watching-btn">
+                                Keep Watching
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if detail_sidebar_ad %}
+                <div class="real-ad-box sidebar-ad">
+                    {% if detail_sidebar_ad.link %}
+                        <a href="{% url 'ad_click' detail_sidebar_ad.id %}" target="_blank">
+                            <img src="{{ detail_sidebar_ad.image.url }}" alt="{{ detail_sidebar_ad.title }}">
+                        </a>
+                    {% else %}
+                        <img src="{{ detail_sidebar_ad.image.url }}" alt="{{ detail_sidebar_ad.title }}">
+                    {% endif %}
+                </div>
+            {% endif %}
+        </aside>
+
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                    );
+                    break;
+                }
+            }
+        }
+
+        return cookieValue;
+    }
+
+    const revealBtn = document.getElementById('reveal-phone-btn');
+    const hiddenPhone = document.getElementById('hidden-phone');
+    const realPhone = document.getElementById('real-phone');
+
+    const modal = document.getElementById('reward-ad-modal');
+    const countdownText = document.getElementById('ad-countdown');
+    const rewardStatus = document.getElementById('reward-status');
+    const skipBtn = document.getElementById('skip-ad-btn');
+    const keepWatchingBtn = document.getElementById('keep-watching-btn');
+    const rewardVideo = document.getElementById('reward-video');
+
+    let phoneRevealed = false;
+
+    function revealPhone() {
+        if (phoneRevealed || !revealBtn) {
+            return;
+        }
+
+        phoneRevealed = true;
+
+        fetch(revealBtn.dataset.url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                hiddenPhone.style.display = 'none';
+                realPhone.textContent = data.phone;
+                realPhone.style.display = 'block';
+                revealBtn.style.display = 'none';
+
+                rewardStatus.textContent = 'Phone number revealed!';
+                countdownText.textContent = 'Reward unlocked';
+                skipBtn.disabled = false;
+                skipBtn.textContent = 'Skip Ad / Close';
+            } else {
+                rewardStatus.textContent = 'Could not reveal phone number. Try again.';
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            rewardStatus.textContent = 'Something went wrong. Try again.';
+        });
+    }
+
+    if (revealBtn && modal) {
+        revealBtn.addEventListener('click', function () {
+            modal.classList.add('show');
+
+            if (rewardVideo) {
+                rewardVideo.play().catch(() => {});
+            }
+
+            let seconds = 5;
+            countdownText.textContent = `Ad ends in ${seconds}s`;
+            rewardStatus.textContent = 'Please watch the ad to reveal the phone number.';
+            skipBtn.disabled = true;
+            skipBtn.textContent = 'Skip Ad';
+
+            const timer = setInterval(function () {
+                seconds -= 1;
+                countdownText.textContent = `Ad ends in ${seconds}s`;
+
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    revealPhone();
+                }
+            }, 1000);
+        });
+    }
+
+    if (skipBtn) {
+        skipBtn.addEventListener('click', function () {
+            if (!phoneRevealed) {
+                return;
+            }
+
+            modal.classList.remove('show');
+
+            if (rewardVideo) {
+                rewardVideo.pause();
+            }
+        });
+    }
+
+    if (keepWatchingBtn) {
+        keepWatchingBtn.addEventListener('click', function () {
+            if (rewardVideo) {
+                rewardVideo.play().catch(() => {});
+            }
+        });
+    }
+</script>
+{% endblock %}

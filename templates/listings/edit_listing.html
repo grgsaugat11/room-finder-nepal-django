@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="form-section">
+    <div class="container">
+        <div class="form-card">
+            <h1>Edit Listing</h1>
+
+            <p class="form-subtitle">
+                Updating this listing will send it back to admin review.
+            </p>
+
+            {% if listing.status == 'rejected' and listing.rejection_reason %}
+                <div class="reject-box">
+                    <strong>Previous Rejection Reason:</strong>
+                    {{ listing.rejection_reason }}
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if listing_form.non_field_errors %}
+                    <div class="form-errors">
+                        {{ listing_form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="form-group-title">Basic Information</div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Property Title</label>
+                        {{ listing_form.title }}
+                        {{ listing_form.title.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Property Type</label>
+                        {{ listing_form.property_type }}
+                        {{ listing_form.property_type.errors }}
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Description</label>
+                    {{ listing_form.description }}
+                    {{ listing_form.description.errors }}
+                </div>
+
+                <div class="form-group-title">Location Information</div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Province</label>
+                        {{ listing_form.province }}
+                        {{ listing_form.province.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>District</label>
+                        {{ listing_form.district }}
+                        {{ listing_form.district.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>City / VDC</label>
+                        {{ listing_form.city }}
+                        {{ listing_form.city.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Area / Tole</label>
+                        {{ listing_form.area }}
+                        {{ listing_form.area.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Ward Number</label>
+                        {{ listing_form.ward_number }}
+                        {{ listing_form.ward_number.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Exact Address</label>
+                        {{ listing_form.exact_address }}
+                        {{ listing_form.exact_address.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Latitude</label>
+                        {{ listing_form.latitude }}
+                        {{ listing_form.latitude.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Longitude</label>
+                        {{ listing_form.longitude }}
+                        {{ listing_form.longitude.errors }}
+                    </div>
+                </div>
+
+                <div class="form-group-title">Pricing Information</div>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Monthly Rent</label>
+                        {{ listing_form.monthly_rent }}
+                        {{ listing_form.monthly_rent.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Security Deposit</label>
+                        {{ listing_form.security_deposit }}
+                        {{ listing_form.security_deposit.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Furnished Status</label>
+                        {{ listing_form.furnished_status }}
+                        {{ listing_form.furnished_status.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Available Date</label>
+                        {{ listing_form.available_date }}
+                        {{ listing_form.available_date.errors }}
+                    </div>
+                </div>
+
+                <div class="checkbox-row">
+                    <label>{{ listing_form.bills_water_included }} Water Bill Included</label>
+                    <label>{{ listing_form.bills_electricity_included }} Electricity Bill Included</label>
+                    <label>{{ listing_form.bills_internet_included }} Internet Bill Included</label>
+                </div>
+
+                <div class="field">
+                    <label>House Rules</label>
+                    {{ listing_form.rules }}
+                    {{ listing_form.rules.errors }}
+                </div>
+
+                <div class="form-group-title">Facilities</div>
+
+                <div class="checkbox-grid">
+                    {% for field in facility_form %}
+                        <label>
+                            {{ field }}
+                            {{ field.label }}
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group-title">Current Images</div>
+
+                <div class="edit-image-grid">
+                    {% for image in listing.images.all %}
+                        <div class="edit-image-card">
+                            <img src="{{ image.image.url }}" alt="{{ listing.title }}">
+
+                            {% if image.is_primary %}
+                                <span class="primary-label">Primary</span>
+                            {% else %}
+                                <a href="{% url 'set_primary_image' image.pk %}" class="small-action-btn">
+                                    Set Primary
+                                </a>
+                            {% endif %}
+
+                            <form method="POST" action="{% url 'delete_listing_image' image.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="small-delete-btn">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <p>No images uploaded.</p>
+                    {% endfor %}
+                </div>
+
+                <div class="field">
+                    <label>Add More Images</label>
+                    <small>You can have maximum 15 images in total.</small>
+                    <input type="file" name="new_images" multiple accept="image/*">
+                </div>
+
+                <div class="form-group-title">Verification Documents</div>
+
+                <p class="form-subtitle">
+                    Upload new documents only if you need to replace the old ones.
+                </p>
+
+                <div class="form-grid">
+                    <div class="field">
+                        <label>Citizenship Front</label>
+                        {{ document_form.citizenship_front }}
+                        {{ document_form.citizenship_front.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Citizenship Back</label>
+                        {{ document_form.citizenship_back }}
+                        {{ document_form.citizenship_back.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Lalpurja</label>
+                        {{ document_form.lalpurja }}
+                        {{ document_form.lalpurja.errors }}
+                    </div>
+
+                    <div class="field">
+                        <label>Selfie with Citizenship</label>
+                        {{ document_form.selfie_with_citizenship }}
+                        {{ document_form.selfie_with_citizenship.errors }}
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    Update Listing
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const selectedDistrict = "{{ listing.district.id|default:'' }}";
+</script>
+{% endblock %}

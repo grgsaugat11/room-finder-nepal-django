@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="dashboard-section">
+    <div class="container">
+        <div class="dashboard-header">
+            <div>
+                <h1>Approved Listings</h1>
+                <p>Listings currently visible to tenants.</p>
+            </div>
+
+            <a href="{% url 'dashboard_home' %}" class="table-btn">Back to Dashboard</a>
+        </div>
+
+        <div class="dashboard-card">
+            <table class="dashboard-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Owner</th>
+                        <th>Location</th>
+                        <th>Rent</th>
+                        <th>Approved At</th>
+                        <th>View</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for listing in listings %}
+                        <tr>
+                            <td>{{ listing.title }}</td>
+                            <td>{{ listing.owner.get_full_name }}</td>
+                            <td>{{ listing.district.name }}, {{ listing.city }}</td>
+                            <td>NPR {{ listing.monthly_rent }}</td>
+                            <td>{{ listing.approved_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'listing_detail' listing.pk %}" class="table-btn">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6">No approved listings.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'includes/pagination.html' %}
+    </div>
+</section>
+
+{% endblock %}

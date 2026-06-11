@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="rooms-section">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <h2>My Favorite Rooms</h2>
+                <p>Rooms and properties you saved.</p>
+            </div>
+        </div>
+
+        <div class="room-grid">
+            {% for favorite in favorites %}
+                {% with listing=favorite.listing %}
+                    <div class="room-card">
+                        <div class="room-image">
+                            {% if listing.primary_image %}
+                                <img src="{{ listing.primary_image.url }}" alt="{{ listing.title }}">
+                            {% else %}
+                                <div class="no-image">No Image</div>
+                            {% endif %}
+
+                            <span class="verified-badge">Verified</span>
+                        </div>
+
+                        <div class="room-body">
+                            <h3>{{ listing.title }}</h3>
+
+                            <p class="location">
+                                {{ listing.district.name }}, {{ listing.city }}
+                            </p>
+
+                            <p class="description">
+                                {{ listing.short_description }}
+                            </p>
+
+                            <div class="price">
+                                NPR {{ listing.monthly_rent }} / month
+                            </div>
+
+                            <a href="{% url 'listing_detail' listing.pk %}" class="details-btn">
+                                View Details
+                            </a>
+
+                            <a
+                                href="{% url 'toggle_favorite' listing.id %}?next={{ request.path }}"
+                                class="remove-fav-btn"
+                            >
+                                Remove
+                            </a>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% empty %}
+                <div class="empty-state">
+                    <h3>No favorites yet</h3>
+                    <p>Save rooms you like and they will appear here.</p>
+                    <br>
+                    <a href="{% url 'home' %}" class="details-btn small-btn">
+                        Browse Rooms
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        {% include 'includes/pagination.html' %}
+    </div>
+</section>
+
+{% endblock %}

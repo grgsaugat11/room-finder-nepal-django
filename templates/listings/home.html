@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="container">
+        <h1>Find Verified Rooms in Nepal</h1>
+        <p>Search trusted rooms, flats, hostels, and rental spaces verified by admins.</p>
+
+        <form method="GET" class="search-box">
+            <input
+                type="text"
+                name="q"
+                placeholder="Search by location, room title, city..."
+                value="{{ request.GET.q }}"
+            >
+
+            <select name="province" id="province-select">
+                <option value="">All Provinces</option>
+                {% for province in provinces %}
+                    <option value="{{ province.id }}"
+                        {% if request.GET.province == province.id|stringformat:"s" %}selected{% endif %}
+                    >
+                        {{ province.name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="district" id="district-select">
+                <option value="">All Districts</option>
+            </select>
+
+            <select name="property_type">
+                <option value="">Property Type</option>
+                {% for value, label in property_types %}
+                    <option value="{{ value }}"
+                        {% if request.GET.property_type == value %}selected{% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input
+                type="number"
+                name="min_price"
+                placeholder="Min Price"
+                value="{{ request.GET.min_price }}"
+            >
+
+            <input
+                type="number"
+                name="max_price"
+                placeholder="Max Price"
+                value="{{ request.GET.max_price }}"
+            >
+
+            <select name="furnished_status">
+                <option value="">Furnished Status</option>
+                {% for value, label in furnished_choices %}
+                    <option value="{{ value }}"
+                        {% if request.GET.furnished_status == value %}selected{% endif %}
+                    >
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="sort">
+                <option value="">Latest</option>
+                <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>
+                    Price Low-High
+                </option>
+                <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>
+                    Price High-Low
+                </option>
+            </select>
+
+            <button type="submit">Search</button>
+        </form>
+    </div>
+</section>
+
+{% if home_top_ad %}
+<section class="ad-banner">
+    <div class="container">
+        <div class="real-ad-box">
+            {% if home_top_ad.link %}
+                <a href="{% url 'ad_click' home_top_ad.id %}" target="_blank">
+                    <img src="{{ home_top_ad.image.url }}" alt="{{ home_top_ad.title }}">
+                </a>
+            {% else %}
+                <img src="{{ home_top_ad.image.url }}" alt="{{ home_top_ad.title }}">
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<section class="rooms-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Available Verified Rooms</h2>
+            <p>{{ page_obj.paginator.count }} listing{{ page_obj.paginator.count|pluralize }} found</p>
+        </div>
+
+        <div class="room-grid">
+            {% for listing in listings %}
+                <div class="room-card">
+                    <div class="room-image">
+                        {% if listing.primary_image %}
+                            <img src="{{ listing.primary_image.url }}" alt="{{ listing.title }}">
+                        {% else %}
+                            <div class="no-image">No Image</div>
+                        {% endif %}
+
+                        {% if listing.is_approved %}
+                            <span class="verified-badge">Verified</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="room-body">
+                        <h3>{{ listing.title }}</h3>
+
+                        <p class="location">
+                            {{ listing.district.name }}, {{ listing.city }}
+                        </p>
+
+                        <p class="description">
+                            {{ listing.short_description }}
+                        </p>
+
+                        <div class="price">
+                            NPR {{ listing.monthly_rent }} / month
+                        </div>
+
+                        <a href="{% url 'listing_detail' listing.pk %}" class="details-btn">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+
+                {% if forloop.counter|divisibleby:6 and home_between_ad %}
+                    <div class="real-ad-box card-ad">
+                        {% if home_between_ad.link %}
+                            <a href="{% url 'ad_click' home_between_ad.id %}" target="_blank">
+                                <img src="{{ home_between_ad.image.url }}" alt="{{ home_between_ad.title }}">
+                            </a>
+                        {% else %}
+                            <img src="{{ home_between_ad.image.url }}" alt="{{ home_between_ad.title }}">
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+            {% empty %}
+                <div class="empty-state">
+                    <h3>No rooms found</h3>
+                    <p>Try changing your search or filter options.</p>
+                </div>
+            {% endfor %}
+        </div>
+        {% include 'includes/pagination.html' %}
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const selectedDistrict = "{{ request.GET.district|default:'' }}";
+</script>
+{% endblock %}

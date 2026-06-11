@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<section class="landlord-section">
+    <div class="container">
+
+        <div class="landlord-hero">
+            <div>
+                <h1>Welcome, {{ request.user.first_name }}</h1>
+                <p>Manage your rental listings, track status, and monitor listing performance.</p>
+            </div>
+
+            <a href="{% url 'create_listing' %}" class="landlord-primary-btn">
+                Post New Room
+            </a>
+        </div>
+
+        <div class="landlord-stats-grid">
+            <div class="landlord-stat-card">
+                <span>Total Listings</span>
+                <strong>{{ total_listings }}</strong>
+            </div>
+
+            <div class="landlord-stat-card pending">
+                <span>Pending</span>
+                <strong>{{ pending_listings_count }}</strong>
+            </div>
+
+            <div class="landlord-stat-card approved">
+                <span>Approved</span>
+                <strong>{{ approved_listings_count }}</strong>
+            </div>
+
+            <div class="landlord-stat-card rejected">
+                <span>Rejected</span>
+                <strong>{{ rejected_listings_count }}</strong>
+            </div>
+
+            <div class="landlord-stat-card views">
+                <span>Total Views</span>
+                <strong>{{ total_views }}</strong>
+            </div>
+        </div>
+
+        <div class="landlord-grid">
+            <div class="landlord-card">
+                <div class="landlord-card-header">
+                    <div>
+                        <h2>Recent Listings</h2>
+                        <p>Your latest submitted properties.</p>
+                    </div>
+
+                    <a href="{% url 'my_listings' %}">View All</a>
+                </div>
+
+                <div class="landlord-list">
+                    {% for listing in recent_listings %}
+                        <div class="landlord-list-item">
+                            <div>
+                                <h3>{{ listing.title }}</h3>
+                                <p>{{ listing.district.name }}, {{ listing.city }}</p>
+                            </div>
+
+                            <div class="landlord-list-right">
+                                <strong>NPR {{ listing.monthly_rent }}</strong>
+                                <span class="status-pill status-{{ listing.status }}">
+                                    {{ listing.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-mini">
+                            <p>You have not posted any listings yet.</p>
+                            <a href="{% url 'create_listing' %}">Post your first room</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="landlord-card">
+                <h2>Performance Summary</h2>
+
+                {% if most_viewed_listing %}
+                    <div class="performance-box">
+                        <span>Most Viewed Listing</span>
+                        <h3>{{ most_viewed_listing.title }}</h3>
+                        <p>{{ most_viewed_listing.views_count }} view{{ most_viewed_listing.views_count|pluralize }}</p>
+
+                        {% if most_viewed_listing.status == 'approved' %}
+                            <a href="{% url 'listing_detail' most_viewed_listing.pk %}">
+                                View Public Page
+                            </a>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty-mini">
+                        <p>No performance data yet.</p>
+                    </div>
+                {% endif %}
+
+                <div class="landlord-tips">
+                    <h3>Tips for Faster Approval</h3>
+                    <ul>
+                        <li>Upload clear citizenship and Lalpurja images.</li>
+                        <li>Add at least 3 clean property photos.</li>
+                        <li>Write a detailed description above 100 characters.</li>
+                        <li>Use accurate location and pricing details.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
