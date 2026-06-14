@@ -3,28 +3,65 @@
 {% block content %}
 
 <section class="auth-section">
-    <div class="auth-card">
-        <h1>Create Account</h1>
-        <p>Join Room Finder Nepal as a tenant or landlord.</p>
+    <div class="auth-panel">
+        <a href="{% url 'home' %}" class="auth-panel-logo">Room Finder</a>
 
-        <form method="POST">
-            {% csrf_token %}
+        <h2>Start your rental journey.</h2>
+        <p>Create an account as a tenant or landlord and use verified room rental features.</p>
 
-            {% for field in form %}
-                <div class="field">
-                    <label>{{ field.label }}</label>
-                    {{ field }}
-                    {{ field.errors }}
-                </div>
-            {% endfor %}
+        <ul class="auth-panel-features">
+            <li>Post rooms as a verified landlord</li>
+            <li>Save favorite listings</li>
+            <li>Report fake or suspicious rooms</li>
+        </ul>
+    </div>
 
-            <button type="submit" class="submit-btn">Register</button>
-        </form>
+    <div class="auth-form-side">
+        <div class="auth-card">
+            <h1>Create Account</h1>
+            <p>Join Room Finder Nepal as a tenant or landlord.</p>
 
-        <p class="auth-link">
-            Already have an account?
-            <a href="{% url 'login' %}">Login</a>
-        </p>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="field">
+                        <label>{{ field.label }}</label>
+
+                        {% if field.name == 'profile_image' %}
+                            <div class="file-upload-wrapper">
+                                <span class="upload-icon">📁</span>
+                                <span class="upload-label">Click to upload profile picture</span>
+                                <span class="upload-hint">JPG, PNG, WEBP</span>
+                                <span class="selected-file-name">No files selected</span>
+                                <div class="selected-image-preview"></div>
+                                {{ field }}
+                            </div>
+
+                        {% elif field.name == 'password1' or field.name == 'password2' %}
+                            <div class="password-field">
+                                {{ field }}
+                                <button type="button" class="password-toggle" aria-label="Show password">
+                                    👁
+                                </button>
+                            </div>
+
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-btn">Register</button>
+            </form>
+
+            <p class="auth-link">
+                Already have an account?
+                <a href="{% url 'login' %}">Login</a>
+            </p>
+        </div>
     </div>
 </section>
 

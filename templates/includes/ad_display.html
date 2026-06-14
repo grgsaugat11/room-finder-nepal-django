@@ -1,0 +1,33 @@
+{% if ad %}
+    <div class="real-ad-box {{ extra_class }}">
+        {% if ad.link %}
+            <a href="{% url 'ad_click' ad.id %}" target="_blank">
+                {% if ad.video %}
+                    <video autoplay muted loop playsinline>
+                        <source src="{{ ad.video.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                {% elif ad.image %}
+                    <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
+                {% else %}
+                    <div class="empty-ad-box">
+                        Advertisement
+                    </div>
+                {% endif %}
+            </a>
+        {% else %}
+            {% if ad.video %}
+                <video autoplay muted loop playsinline>
+                    <source src="{{ ad.video.url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% elif ad.image %}
+                <img src="{{ ad.image.url }}" alt="{{ ad.title }}">
+            {% else %}
+                <div class="empty-ad-box">
+                    Advertisement
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endif %}

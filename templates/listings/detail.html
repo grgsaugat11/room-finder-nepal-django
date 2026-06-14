@@ -15,15 +15,7 @@
             </div>
 
             {% if detail_below_images_ad %}
-                <div class="real-ad-box detail-ad">
-                    {% if detail_below_images_ad.link %}
-                        <a href="{% url 'ad_click' detail_below_images_ad.id %}" target="_blank">
-                            <img src="{{ detail_below_images_ad.image.url }}" alt="{{ detail_below_images_ad.title }}">
-                        </a>
-                    {% else %}
-                        <img src="{{ detail_below_images_ad.image.url }}" alt="{{ detail_below_images_ad.title }}">
-                    {% endif %}
-                </div>
+                {% include 'includes/ad_display.html' with ad=detail_below_images_ad extra_class='detail-ad' %}
             {% endif %}
 
             <div class="detail-card">
@@ -188,15 +180,7 @@
             </div>
 
             {% if detail_sidebar_ad %}
-                <div class="real-ad-box sidebar-ad">
-                    {% if detail_sidebar_ad.link %}
-                        <a href="{% url 'ad_click' detail_sidebar_ad.id %}" target="_blank">
-                            <img src="{{ detail_sidebar_ad.image.url }}" alt="{{ detail_sidebar_ad.title }}">
-                        </a>
-                    {% else %}
-                        <img src="{{ detail_sidebar_ad.image.url }}" alt="{{ detail_sidebar_ad.title }}">
-                    {% endif %}
-                </div>
+                {% include 'includes/ad_display.html' with ad=detail_sidebar_ad extra_class='sidebar-ad' %}
             {% endif %}
         </aside>
 

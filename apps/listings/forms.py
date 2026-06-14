@@ -5,7 +5,9 @@ from .models import Listing, ListingFacility, ListingDocument
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
-
+    
+class CleanFileInput(forms.FileInput):
+    template_name = 'django/forms/widgets/file.html'
 
 class MultipleFileField(forms.FileField):
     def __init__(self, *args, **kwargs):
@@ -90,9 +92,25 @@ class ListingDocumentForm(forms.ModelForm):
             'selfie_with_citizenship',
         ]
 
+        widgets = {
+            'citizenship_front': CleanFileInput(attrs={
+                'accept': 'image/*'
+            }),
+            'citizenship_back': CleanFileInput(attrs={
+                'accept': 'image/*'
+            }),
+            'lalpurja': CleanFileInput(attrs={
+                'accept': 'image/*'
+            }),
+            'selfie_with_citizenship': CleanFileInput(attrs={
+                'accept': 'image/*'
+            }),
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # During edit, documents are optional because old files already exist.
         if self.instance and self.instance.pk:
             for field in self.fields.values():
                 field.required = False

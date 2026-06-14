@@ -8,8 +8,14 @@
             <h1>Edit Listing</h1>
 
             <p class="form-subtitle">
-                Updating this listing will send it back to admin review.
+                Update your room/property details. After saving, this listing will be sent back for admin review.
             </p>
+
+            {% if listing.status == 'approved' %}
+                <div class="edit-listing-warning">
+                    This is a verified listing. Editing it will remove it from public listings until admin approves it again.
+                </div>
+            {% endif %}
 
             {% if listing.status == 'rejected' and listing.rejection_reason %}
                 <div class="reject-box">
@@ -24,6 +30,18 @@
                 {% if listing_form.non_field_errors %}
                     <div class="form-errors">
                         {{ listing_form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% if facility_form.non_field_errors %}
+                    <div class="form-errors">
+                        {{ facility_form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% if document_form.non_field_errors %}
+                    <div class="form-errors">
+                        {{ document_form.non_field_errors }}
                     </div>
                 {% endif %}
 
@@ -162,17 +180,22 @@
                             {% if image.is_primary %}
                                 <span class="primary-label">Primary</span>
                             {% else %}
-                                <a href="{% url 'set_primary_image' image.pk %}" class="small-action-btn">
+                                <button type="submit"
+                                        class="small-action-btn"
+                                        formaction="{% url 'set_primary_image' image.pk %}"
+                                        formmethod="post"
+                                        data-confirm="Changing the primary image will send this listing back to admin review. Continue?">
                                     Set Primary
-                                </a>
+                                </button>
                             {% endif %}
 
-                            <form method="POST" action="{% url 'delete_listing_image' image.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="small-delete-btn">
-                                    Delete
-                                </button>
-                            </form>
+                            <button type="submit"
+                                    class="small-delete-btn"
+                                    formaction="{% url 'delete_listing_image' image.pk %}"
+                                    formmethod="post"
+                                    data-confirm="Are you sure you want to delete this image?">
+                                Delete
+                            </button>
                         </div>
                     {% empty %}
                         <p>No images uploaded.</p>
@@ -182,42 +205,118 @@
                 <div class="field">
                     <label>Add More Images</label>
                     <small>You can have maximum 15 images in total.</small>
-                    <input type="file" name="new_images" multiple accept="image/*">
+
+                    <div class="file-upload-wrapper">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-label">Click to add more images</span>
+                        <span class="upload-hint">JPG, PNG, WEBP — max 5MB each</span>
+                        <span class="selected-file-name">No files selected</span>
+                        <div class="selected-image-preview"></div>
+                        <input type="file" name="new_images" multiple accept="image/*">
+                    </div>
                 </div>
 
                 <div class="form-group-title">Verification Documents</div>
 
                 <p class="form-subtitle">
-                    Upload new documents only if you need to replace the old ones.
+                    Existing documents are kept unless you upload new ones. Upload new files only if you need to replace them.
                 </p>
 
-                <div class="form-grid">
-                    <div class="field">
-                        <label>Citizenship Front</label>
-                        {{ document_form.citizenship_front }}
+                <div class="document-upload-grid">
+
+                    <div class="document-upload-card">
+                        <h4>Citizenship Front</h4>
+                        <p>Upload a clear front side image of citizenship.</p>
+
+                        {% if listing.documents and listing.documents.citizenship_front %}
+                            <a href="{{ listing.documents.citizenship_front.url }}" target="_blank" class="current-document-link">
+                                View Current File
+                            </a>
+                        {% endif %}
+
+                        <div class="file-upload-wrapper">
+                            <span class="upload-icon">📁</span>
+                            <span class="upload-label">Replace citizenship front</span>
+                            <span class="upload-hint">JPG, PNG, WEBP</span>
+                            <span class="selected-file-name">No file selected</span>
+                            <div class="selected-image-preview"></div>
+                            {{ document_form.citizenship_front }}
+                        </div>
+
                         {{ document_form.citizenship_front.errors }}
                     </div>
 
-                    <div class="field">
-                        <label>Citizenship Back</label>
-                        {{ document_form.citizenship_back }}
+                    <div class="document-upload-card">
+                        <h4>Citizenship Back</h4>
+                        <p>Upload a clear back side image of citizenship.</p>
+
+                        {% if listing.documents and listing.documents.citizenship_back %}
+                            <a href="{{ listing.documents.citizenship_back.url }}" target="_blank" class="current-document-link">
+                                View Current File
+                            </a>
+                        {% endif %}
+
+                        <div class="file-upload-wrapper">
+                            <span class="upload-icon">📁</span>
+                            <span class="upload-label">Replace citizenship back</span>
+                            <span class="upload-hint">JPG, PNG, WEBP</span>
+                            <span class="selected-file-name">No file selected</span>
+                            <div class="selected-image-preview"></div>
+                            {{ document_form.citizenship_back }}
+                        </div>
+
                         {{ document_form.citizenship_back.errors }}
                     </div>
 
-                    <div class="field">
-                        <label>Lalpurja</label>
-                        {{ document_form.lalpurja }}
+                    <div class="document-upload-card">
+                        <h4>Lalpurja</h4>
+                        <p>Upload property ownership document.</p>
+
+                        {% if listing.documents and listing.documents.lalpurja %}
+                            <a href="{{ listing.documents.lalpurja.url }}" target="_blank" class="current-document-link">
+                                View Current File
+                            </a>
+                        {% endif %}
+
+                        <div class="file-upload-wrapper">
+                            <span class="upload-icon">📁</span>
+                            <span class="upload-label">Replace Lalpurja</span>
+                            <span class="upload-hint">JPG, PNG, WEBP</span>
+                            <span class="selected-file-name">No file selected</span>
+                            <div class="selected-image-preview"></div>
+                            {{ document_form.lalpurja }}
+                        </div>
+
                         {{ document_form.lalpurja.errors }}
                     </div>
 
-                    <div class="field">
-                        <label>Selfie with Citizenship</label>
-                        {{ document_form.selfie_with_citizenship }}
+                    <div class="document-upload-card">
+                        <h4>Selfie with Citizenship</h4>
+                        <p>Upload a clear selfie holding citizenship.</p>
+
+                        {% if listing.documents and listing.documents.selfie_with_citizenship %}
+                            <a href="{{ listing.documents.selfie_with_citizenship.url }}" target="_blank" class="current-document-link">
+                                View Current File
+                            </a>
+                        {% endif %}
+
+                        <div class="file-upload-wrapper">
+                            <span class="upload-icon">📁</span>
+                            <span class="upload-label">Replace selfie with citizenship</span>
+                            <span class="upload-hint">JPG, PNG, WEBP</span>
+                            <span class="selected-file-name">No file selected</span>
+                            <div class="selected-image-preview"></div>
+                            {{ document_form.selfie_with_citizenship }}
+                        </div>
+
                         {{ document_form.selfie_with_citizenship.errors }}
                     </div>
+
                 </div>
 
-                <button type="submit" class="submit-btn">
+                <button type="submit"
+                        class="submit-btn"
+                        data-confirm="Are you sure you want to update this listing? It will be sent back to admin review.">
                     Update Listing
                 </button>
             </form>
@@ -225,10 +324,4 @@
     </div>
 </section>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-    const selectedDistrict = "{{ listing.district.id|default:'' }}";
-</script>
 {% endblock %}

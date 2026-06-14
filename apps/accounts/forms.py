@@ -4,6 +4,8 @@ from django.contrib.auth.forms import UserCreationForm
 
 from .models import User
 
+class CleanImageInput(forms.FileInput):
+    template_name = 'django/forms/widgets/file.html'
 
 class RegisterForm(UserCreationForm):
     role = forms.ChoiceField(
@@ -20,10 +22,23 @@ class RegisterForm(UserCreationForm):
             'last_name',
             'email',
             'phone',
+            'profile_image',
             'role',
             'password1',
             'password2',
         ]
+        
+        widgets = {
+            'profile_image': CleanImageInput(attrs={
+                'accept': 'image/*'
+            })
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['profile_image'].required = False
+        self.fields['profile_image'].label = "Profile Picture (Optional)"
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name')
@@ -96,7 +111,14 @@ class ProfileUpdateForm(forms.ModelForm):
             'first_name',
             'last_name',
             'phone',
+            'profile_image',
         ]
+
+        widgets = {
+            'profile_image': CleanImageInput(attrs={
+                'accept': 'image/*'
+            })
+        }
 
     def clean_first_name(self):
         first_name = self.cleaned_data.get('first_name')

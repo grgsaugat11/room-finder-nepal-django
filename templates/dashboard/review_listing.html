@@ -80,7 +80,9 @@
                     {% if listing.status != 'approved' %}
                         <form method="POST" action="{% url 'approve_listing' listing.pk %}">
                             {% csrf_token %}
-                            <button type="submit" class="approve-btn">
+                            <button type="submit"
+                                    class="approve-btn"
+                                    data-confirm="Are you sure you want to approve this listing?">
                                 Approve Listing
                             </button>
                         </form>
@@ -99,7 +101,9 @@
                                 ></textarea>
                             </div>
 
-                            <button type="submit" class="reject-btn">
+                            <button type="submit"
+                                    class="reject-btn"
+                                    data-confirm="Are you sure you want to reject this listing?">
                                 Reject Listing
                             </button>
                         </form>

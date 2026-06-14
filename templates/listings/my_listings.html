@@ -45,13 +45,15 @@
                             NPR {{ listing.monthly_rent }} / month
                         </div>
                         <div class="listing-actions">
-                            {% if listing.status != 'approved' %}
-                                <a href="{% url 'edit_listing' listing.pk %}" class="edit-listing-btn">
-                                    Edit
-                                </a>
-                            {% endif %}
+                            <a href="{% url 'edit_listing' listing.pk %}"
+                            class="edit-listing-btn"
+                            data-confirm="Editing this listing will send it back to admin review. Continue?">
+                                Edit Listing
+                            </a>
 
-                            <a href="{% url 'delete_listing' listing.pk %}" class="delete-listing-btn">
+                            <a href="{% url 'delete_listing' listing.pk %}"
+                            class="delete-listing-btn"
+                            data-confirm="Are you sure you want to open delete confirmation for this listing?">
                                 Delete
                             </a>
                         </div>

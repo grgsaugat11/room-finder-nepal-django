@@ -8,7 +8,11 @@
 
             <aside class="profile-sidebar">
                 <div class="profile-avatar">
-                    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                    {% if request.user.profile_image %}
+                        <img src="{{ request.user.profile_image.url }}" alt="{{ request.user.get_full_name }}">
+                    {% else %}
+                        {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                    {% endif %}
                 </div>
 
                 <h2>{{ request.user.get_full_name }}</h2>
@@ -24,9 +28,9 @@
                     <span class="unverified-profile">Email Not Verified</span>
                 {% endif %}
 
-                <a href="{% url 'edit_profile' %}" class="profile-action-btn">
+                <button type="button" class="profile-action-btn profile-modal-open">
                     Edit Profile
-                </a>
+                </button>
 
                 {% if request.user.is_landlord %}
                     <a href="{% url 'landlord_dashboard' %}" class="profile-action-btn secondary">
@@ -105,5 +109,57 @@
         </div>
     </div>
 </section>
+
+<div class="profile-modal" id="profile-modal">
+    <div class="profile-modal-card">
+        <div class="profile-modal-header">
+            <div>
+                <h2>Edit Profile</h2>
+                <p>Update your personal details.</p>
+            </div>
+
+            <button type="button" class="profile-modal-close">
+                ×
+            </button>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="field">
+                    <label>{{ field.label }}</label>
+
+                    {% if field.name == 'profile_image' %}
+                        {% if request.user.profile_image %}
+                            <div class="current-profile-image">
+                                <img src="{{ request.user.profile_image.url }}" alt="Current Profile Image">
+                            </div>
+                        {% endif %}
+
+                        <div class="file-upload-wrapper">
+                            <span class="upload-icon">📁</span>
+                            <span class="upload-label">Click to upload profile picture</span>
+                            <span class="upload-hint">JPG, PNG, WEBP</span>
+                            <span class="selected-file-name">No files selected</span>
+                            <div class="selected-image-preview"></div>
+                            {{ field }}
+                        </div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+
+            <button type="submit"
+                    class="submit-btn"
+                    data-confirm="Are you sure you want to update your profile?">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
 
 {% endblock %}

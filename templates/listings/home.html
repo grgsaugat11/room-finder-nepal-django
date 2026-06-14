@@ -84,15 +84,7 @@
 {% if home_top_ad %}
 <section class="ad-banner">
     <div class="container">
-        <div class="real-ad-box">
-            {% if home_top_ad.link %}
-                <a href="{% url 'ad_click' home_top_ad.id %}" target="_blank">
-                    <img src="{{ home_top_ad.image.url }}" alt="{{ home_top_ad.title }}">
-                </a>
-            {% else %}
-                <img src="{{ home_top_ad.image.url }}" alt="{{ home_top_ad.title }}">
-            {% endif %}
-        </div>
+        {% include 'includes/ad_display.html' with ad=home_top_ad extra_class='home-top-ad' %}
     </div>
 </section>
 {% endif %}
@@ -141,15 +133,7 @@
                 </div>
 
                 {% if forloop.counter|divisibleby:6 and home_between_ad %}
-                    <div class="real-ad-box card-ad">
-                        {% if home_between_ad.link %}
-                            <a href="{% url 'ad_click' home_between_ad.id %}" target="_blank">
-                                <img src="{{ home_between_ad.image.url }}" alt="{{ home_between_ad.title }}">
-                            </a>
-                        {% else %}
-                            <img src="{{ home_between_ad.image.url }}" alt="{{ home_between_ad.title }}">
-                        {% endif %}
-                    </div>
+                    {% include 'includes/ad_display.html' with ad=home_between_ad extra_class='card-ad' %}
                 {% endif %}
 
             {% empty %}

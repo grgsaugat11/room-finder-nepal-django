@@ -34,7 +34,7 @@ def register_view(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
+        form = RegisterForm(request.POST, request.FILES)
 
         if form.is_valid():
             user = form.save(commit=False)
@@ -154,13 +154,33 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    return render(request, 'accounts/profile.html')
+    if request.method == 'POST':
+        form = ProfileUpdateForm(
+            request.POST,
+            request.FILES,
+            instance=request.user
+        )
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect('profile')
+    else:
+        form = ProfileUpdateForm(instance=request.user)
+
+    return render(request, 'accounts/profile.html', {
+        'form': form
+    })
 
 
 @login_required
 def edit_profile_view(request):
     if request.method == 'POST':
-        form = ProfileUpdateForm(request.POST, instance=request.user)
+        form = ProfileUpdateForm(
+            request.POST,
+            request.FILES,
+            instance=request.user
+        )
 
         if form.is_valid():
             form.save()

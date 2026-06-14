@@ -210,7 +210,9 @@ def create_listing(request):
 
 @login_required
 def my_listings(request):
-    listings = Listing.objects.filter(owner=request.user).order_by('-created_at')
+    listings = Listing.objects.filter(
+        owner=request.user
+    ).order_by('-updated_at', '-created_at')
 
     page_obj, query_string = paginate_queryset(request, listings, per_page=9)
 
@@ -227,13 +229,6 @@ def edit_listing(request, pk):
         pk=pk,
         owner=request.user
     )
-
-    if listing.status == Listing.STATUS_APPROVED:
-        messages.error(
-            request,
-            "Approved listings cannot be edited directly. Please contact admin."
-        )
-        return redirect('my_listings')
 
     try:
         facilities = listing.facilities
@@ -254,10 +249,14 @@ def edit_listing(request, pk):
             instance=documents
         )
 
-        if listing_form.is_valid() and facility_form.is_valid() and document_form.is_valid():
+        listing_valid = listing_form.is_valid()
+        facility_valid = facility_form.is_valid()
+        document_valid = document_form.is_valid()
+
+        if listing_valid and facility_valid and document_valid:
             listing = listing_form.save(commit=False)
 
-            # If rejected listing is edited, send it back to admin review
+            # Any edit sends listing back to admin review.
             listing.status = Listing.STATUS_PENDING
             listing.rejection_reason = ''
             listing.is_owner_verified = False
@@ -303,6 +302,9 @@ def edit_listing(request, pk):
                 "Listing updated and submitted for admin review again."
             )
             return redirect('my_listings')
+
+        messages.error(request, "Please fix the errors below before updating the listing.")
+
     else:
         listing_form = ListingForm(instance=listing)
         facility_form = ListingFacilityForm(instance=facilities)
@@ -344,13 +346,6 @@ def delete_listing_image(request, pk):
 
     listing = image.listing
 
-    if listing.status == Listing.STATUS_APPROVED:
-        messages.error(
-            request,
-            "Images of approved listings cannot be changed directly."
-        )
-        return redirect('my_listings')
-
     if request.method == 'POST':
         was_primary = image.is_primary
         image.delete()
@@ -361,7 +356,14 @@ def delete_listing_image(request, pk):
                 first_image.is_primary = True
                 first_image.save()
 
-        messages.success(request, "Image deleted successfully.")
+        listing.status = Listing.STATUS_PENDING
+        listing.rejection_reason = ''
+        listing.is_owner_verified = False
+        listing.is_property_verified = False
+        listing.approved_at = None
+        listing.save()
+
+        messages.success(request, "Image deleted successfully. Listing sent back for admin review.")
         return redirect('edit_listing', pk=listing.pk)
 
     return redirect('edit_listing', pk=listing.pk)
@@ -377,19 +379,22 @@ def set_primary_image(request, pk):
 
     listing = image.listing
 
-    if listing.status == Listing.STATUS_APPROVED:
-        messages.error(
-            request,
-            "Images of approved listings cannot be changed directly."
-        )
-        return redirect('my_listings')
+    if request.method == 'POST':
+        ListingImage.objects.filter(listing=listing).update(is_primary=False)
 
-    ListingImage.objects.filter(listing=listing).update(is_primary=False)
+        image.is_primary = True
+        image.save()
 
-    image.is_primary = True
-    image.save()
+        listing.status = Listing.STATUS_PENDING
+        listing.rejection_reason = ''
+        listing.is_owner_verified = False
+        listing.is_property_verified = False
+        listing.approved_at = None
+        listing.save()
 
-    messages.success(request, "Primary image updated successfully.")
+        messages.success(request, "Primary image updated. Listing sent back for admin review.")
+        return redirect('edit_listing', pk=listing.pk)
+
     return redirect('edit_listing', pk=listing.pk)
 
 @login_required

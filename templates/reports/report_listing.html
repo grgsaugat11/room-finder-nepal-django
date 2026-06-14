@@ -3,34 +3,51 @@
 {% block content %}
 
 <section class="auth-section">
-    <div class="auth-card">
-        <h1>Report Listing</h1>
-        <p>
-            Report suspicious or fake listing:
-            <strong>{{ listing.title }}</strong>
-        </p>
+    <div class="auth-panel">
+        <a href="{% url 'home' %}" class="auth-panel-logo">Room Finder</a>
 
-        <form method="POST">
-            {% csrf_token %}
+        <h2>Help keep Room Finder safe.</h2>
+        <p>Report fake, suspicious, scam, duplicate, or incorrect listings so admins can review them.</p>
 
-            {% for field in form %}
-                <div class="field">
-                    <label>{{ field.label }}</label>
-                    {{ field }}
-                    {{ field.errors }}
-                </div>
-            {% endfor %}
+        <ul class="auth-panel-features">
+            <li>Protect tenants from fake rooms</li>
+            <li>Help admins remove suspicious posts</li>
+            <li>Improve trust across the platform</li>
+        </ul>
+    </div>
 
-            <button type="submit" class="submit-btn">
-                Submit Report
-            </button>
-        </form>
+    <div class="auth-form-side">
+        <div class="auth-card">
+            <h1>Report Listing</h1>
+            <p>
+                Report suspicious listing:
+                <strong>{{ listing.title }}</strong>
+            </p>
 
-        <p class="auth-link">
-            <a href="{% url 'listing_detail' listing.pk %}">
-                Back to Listing
-            </a>
-        </p>
+            <form method="POST">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="field">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+
+                <button type="submit"
+                        class="submit-btn"
+                        data-confirm="Are you sure you want to report this listing?">
+                    Submit Report
+                </button>
+            </form>
+
+            <p class="auth-link">
+                <a href="{% url 'listing_detail' listing.pk %}">
+                    Back to Listing
+                </a>
+            </p>
+        </div>
     </div>
 </section>
 

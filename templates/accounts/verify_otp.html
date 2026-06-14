@@ -3,28 +3,43 @@
 {% block content %}
 
 <section class="auth-section">
-    <div class="auth-card">
-        <h1>Verify Email</h1>
-        <p>Enter the 6-digit OTP sent to your email.</p>
+    <div class="auth-panel">
+        <a href="{% url 'home' %}" class="auth-panel-logo">Room Finder</a>
 
-        <form method="POST">
-            {% csrf_token %}
+        <h2>Secure your account.</h2>
+        <p>We verify email addresses to keep Room Finder safer for tenants and landlords.</p>
 
-            {% for field in form %}
-                <div class="field">
-                    <label>{{ field.label }}</label>
-                    {{ field }}
-                    {{ field.errors }}
-                </div>
-            {% endfor %}
+        <ul class="auth-panel-features">
+            <li>Prevents fake accounts</li>
+            <li>Protects landlord listings</li>
+            <li>Builds trust on the platform</li>
+        </ul>
+    </div>
 
-            <button type="submit" class="submit-btn">Verify OTP</button>
-        </form>
+    <div class="auth-form-side">
+        <div class="auth-card">
+            <h1>Verify Email</h1>
+            <p>Enter the 6-digit OTP sent to your email.</p>
 
-        <p class="auth-link">
-            Didn’t receive OTP?
-            <a href="{% url 'resend_otp' %}">Resend OTP</a>
-        </p>
+            <form method="POST">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="field">
+                        <label>{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-btn">Verify OTP</button>
+            </form>
+
+            <p class="auth-link">
+                Didn’t receive OTP?
+                <a href="{% url 'resend_otp' %}">Resend OTP</a>
+            </p>
+        </div>
     </div>
 </section>
 

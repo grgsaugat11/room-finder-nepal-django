@@ -3,29 +3,61 @@
 {% block content %}
 
 <section class="auth-section">
-    <div class="auth-card">
-        <h1>Edit Profile</h1>
-        <p>Update your personal details.</p>
+    <div class="auth-panel">
+        <a href="{% url 'home' %}" class="auth-panel-logo">Room Finder</a>
 
-        <form method="POST">
-            {% csrf_token %}
+        <h2>Keep your profile fresh.</h2>
+        <p>Update your details so tenants and landlords can identify you clearly.</p>
 
-            {% for field in form %}
-                <div class="field">
-                    <label>{{ field.label }}</label>
-                    {{ field }}
-                    {{ field.errors }}
-                </div>
-            {% endfor %}
+        <ul class="auth-panel-features">
+            <li>Update personal information</li>
+            <li>Add or change profile picture</li>
+            <li>Keep contact details accurate</li>
+        </ul>
+    </div>
 
-            <button type="submit" class="submit-btn">
-                Save Changes
-            </button>
-        </form>
+    <div class="auth-form-side">
+        <div class="auth-card">
+            <h1>Edit Profile</h1>
+            <p>Update your personal details.</p>
 
-        <p class="auth-link">
-            <a href="{% url 'profile' %}">Back to Profile</a>
-        </p>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="field">
+                        <label>{{ field.label }}</label>
+
+                        {% if field.name == 'profile_image' %}
+                            {% if request.user.profile_image %}
+                                <div class="current-profile-image">
+                                    <img src="{{ request.user.profile_image.url }}" alt="Current Profile Image">
+                                </div>
+                            {% endif %}
+
+                            <div class="file-upload-wrapper">
+                                <span class="upload-icon">📁</span>
+                                <span class="upload-label">Click to upload profile picture</span>
+                                <span class="upload-hint">JPG, PNG, WEBP</span>
+                                {{ field }}
+                            </div>
+                        {% else %}
+                            {{ field }}
+                        {% endif %}
+
+                        {{ field.errors }}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-btn">
+                    Save Changes
+                </button>
+            </form>
+
+            <p class="auth-link">
+                <a href="{% url 'profile' %}">Back to Profile</a>
+            </p>
+        </div>
     </div>
 </section>
 

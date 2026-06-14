@@ -149,39 +149,62 @@
                 <div class="field">
                     <label>Upload Property Images</label>
                     <small>Minimum 3 images, maximum 15 images.</small>
-                    {{ image_form.images }}
+
+                    <div class="file-upload-wrapper">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-label">Click to upload property images</span>
+                        <span class="upload-hint">JPG, PNG, WEBP — max 5MB each</span>
+                        <span class="selected-file-name">No files selected</span>
+                        <div class="selected-image-preview"></div>
+                        {{ image_form.images }}
+                    </div>
+
                     {{ image_form.images.errors }}
                 </div>
 
                 <div class="form-group-title">Verification Documents</div>
 
                 <div class="form-grid">
-                    <div class="field">
-                        <label>Citizenship Front</label>
+                    <div class="file-upload-wrapper">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-label">Upload citizenship front</span>
+                        <span class="upload-hint">JPG, PNG — max 5MB</span>
+                        <span class="selected-file-name">No files selected</span>
+                        <div class="selected-image-preview"></div>
                         {{ document_form.citizenship_front }}
-                        {{ document_form.citizenship_front.errors }}
                     </div>
 
-                    <div class="field">
-                        <label>Citizenship Back</label>
+                    <div class="file-upload-wrapper">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-label">Upload citizenship back</span>
+                        <span class="upload-hint">JPG, PNG — max 5MB</span>
+                        <span class="selected-file-name">No files selected</span>
+                        <div class="selected-image-preview"></div>
                         {{ document_form.citizenship_back }}
-                        {{ document_form.citizenship_back.errors }}
                     </div>
 
-                    <div class="field">
-                        <label>Lalpurja</label>
+                    <div class="file-upload-wrapper">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-label">Upload Lalpurja</span>
+                        <span class="upload-hint">JPG, PNG — max 5MB</span>
+                        <span class="selected-file-name">No files selected</span>
+                        <div class="selected-image-preview"></div>
                         {{ document_form.lalpurja }}
-                        {{ document_form.lalpurja.errors }}
                     </div>
 
-                    <div class="field">
-                        <label>Selfie with Citizenship</label>
+                    <div class="file-upload-wrapper">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-label">Upload selfie with citizenship</span>
+                        <span class="upload-hint">JPG, PNG — max 5MB</span>
+                        <span class="selected-file-name">No files selected</span>
+                        <div class="selected-image-preview"></div>
                         {{ document_form.selfie_with_citizenship }}
-                        {{ document_form.selfie_with_citizenship.errors }}
                     </div>
                 </div>
 
-                <button type="submit" class="submit-btn">
+                <button type="submit"
+                        class="submit-btn"
+                        data-confirm="Are you sure you want to submit this listing for admin review?">
                     Submit Listing for Review
                 </button>
             </form>
