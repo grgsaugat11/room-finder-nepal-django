@@ -26,8 +26,16 @@
                 {% endfor %}
             </select>
 
-            <select name="district" id="district-select">
+            <select name="district" id="district-select" data-selected="{{ selected_district|default:'' }}">
                 <option value="">All Districts</option>
+
+                {% for district in districts %}
+                    <option value="{{ district.id }}"
+                        {% if selected_district == district.id|stringformat:"s" %}selected{% endif %}
+                    >
+                        {{ district.name }}
+                    </option>
+                {% endfor %}
             </select>
 
             <select name="property_type">
@@ -149,8 +157,8 @@
 
 {% endblock %}
 
-{% block scripts %}
+<!-- {% block scripts %}
 <script>
-    const selectedDistrict = "{{ request.GET.district|default:'' }}";
+    window.selectedDistrict = "{{ selected_district|default:'' }}";
 </script>
-{% endblock %}
+{% endblock %} -->

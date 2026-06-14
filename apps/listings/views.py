@@ -59,6 +59,7 @@ def home(request):
         listings = listings.order_by('-created_at')
 
     provinces = Province.objects.all()
+    districts = District.objects.select_related('province').all().order_by('name')
 
     page_obj, query_string = paginate_queryset(request, listings, per_page=9)
     
@@ -76,6 +77,7 @@ def home(request):
         'selected_district': district_id,
         'home_top_ad': home_top_ad,
         'home_between_ad': home_between_ad,
+        'districts': districts,
     }
 
     return render(request, 'listings/home.html', context)
@@ -132,12 +134,21 @@ def listing_detail(request, pk):
 
 def load_districts(request):
     province_id = request.GET.get('province_id')
-    districts = District.objects.filter(province_id=province_id).order_by('name')
+
+    if province_id:
+        districts = District.objects.filter(
+            province_id=province_id
+        ).select_related('province').order_by('name')
+    else:
+        districts = District.objects.select_related(
+            'province'
+        ).all().order_by('name')
 
     data = [
         {
             'id': district.id,
-            'name': district.name
+            'name': district.name,
+            'province': district.province.name,
         }
         for district in districts
     ]

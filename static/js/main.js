@@ -6,23 +6,37 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    function loadDistricts(provinceId, selectedDistrictId = '') {
-        districtSelect.innerHTML = '<option value="">Loading...</option>';
+    const selectedDistrict = districtSelect.dataset.selected || '';
 
-        if (!provinceId) {
-            districtSelect.innerHTML = '<option value="">All Districts</option>';
-            return;
+    function loadDistricts(provinceId, selectedDistrictId = '') {
+        districtSelect.innerHTML = '<option value="">Loading districts...</option>';
+
+        let url = '/ajax/load-districts/';
+
+        if (provinceId) {
+            url += `?province_id=${provinceId}`;
         }
 
-        fetch(`/ajax/load-districts/?province_id=${provinceId}`)
-            .then(response => response.json())
-            .then(data => {
+        fetch(url)
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Failed to load districts');
+                }
+
+                return response.json();
+            })
+            .then(function (data) {
                 districtSelect.innerHTML = '<option value="">All Districts</option>';
 
-                data.districts.forEach(district => {
+                data.districts.forEach(function (district) {
                     const option = document.createElement('option');
                     option.value = district.id;
-                    option.textContent = district.name;
+
+                    if (provinceId) {
+                        option.textContent = district.name;
+                    } else {
+                        option.textContent = `${district.name} — ${district.province}`;
+                    }
 
                     if (String(district.id) === String(selectedDistrictId)) {
                         option.selected = true;
@@ -31,9 +45,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     districtSelect.appendChild(option);
                 });
             })
-            .catch(error => {
-                console.error('Error loading districts:', error);
-                districtSelect.innerHTML = '<option value="">All Districts</option>';
+            .catch(function (error) {
+                console.error('District loading error:', error);
+                districtSelect.innerHTML = '<option value="">Could not load districts</option>';
             });
     }
 
