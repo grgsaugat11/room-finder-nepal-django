@@ -207,6 +207,44 @@ img {
 }
 
 /* =========================
+   HAMBURGER NAV
+========================= */
+
+.hamburger-btn {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hamburger-btn span {
+  width: 22px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: var(--r-pill);
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.hamburger-btn.active span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-btn.active span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* =========================
    HERO
 ========================= */
 
@@ -3152,12 +3190,44 @@ img {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 760px) {
   .nav-content {
+    position: relative;
+    height: 64px;
+    padding: 0;
+    flex-direction: row;
+  }
+
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .navbar nav {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+
+    display: none;
     flex-direction: column;
-    gap: 8px;
-    height: auto;
-    padding: 12px 0;
+    gap: 6px;
+
+    background: rgba(19, 15, 42, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: none;
+    border-radius: 0 0 var(--r-lg) var(--r-lg);
+
+    padding: 14px;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .navbar nav.show {
+    display: flex;
+  }
+
+  .navbar nav a {
+    width: 100%;
+    padding: 12px 14px;
   }
 
   .search-box {

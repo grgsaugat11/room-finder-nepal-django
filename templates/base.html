@@ -14,7 +14,13 @@
     <div class="container nav-content">
         <a href="{% url 'home' %}" class="logo">Room Finder</a>
 
-        <nav>
+        <button type="button" class="hamburger-btn" id="hamburger-btn" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav id="main-nav">
             <a href="{% url 'home' %}"
                class="{% if request.resolver_match.url_name == 'home' %}active-nav{% endif %}">
                 Home

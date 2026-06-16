@@ -227,3 +227,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+    const mainNav = document.getElementById('main-nav');
+
+    if (!hamburgerBtn || !mainNav) {
+        return;
+    }
+
+    hamburgerBtn.addEventListener('click', function () {
+        hamburgerBtn.classList.toggle('active');
+        mainNav.classList.toggle('show');
+    });
+
+    mainNav.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            hamburgerBtn.classList.remove('active');
+            mainNav.classList.remove('show');
+        });
+    });
+});
