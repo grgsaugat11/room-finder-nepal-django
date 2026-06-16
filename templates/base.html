@@ -83,10 +83,15 @@
         <div class="toast-wrapper">
             {% for message in messages %}
                 <div class="toast-message {{ message.tags }}">
-                    {{ message }}
-                    <button type="button" class="toast-close" onclick="this.parentElement.remove()">
+                    <div class="toast-content">
+                        {{ message }}
+                    </div>
+
+                    <button type="button" class="toast-close">
                         ×
                     </button>
+
+                    <div class="toast-progress"></div>
                 </div>
             {% endfor %}
         </div>
