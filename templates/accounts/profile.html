@@ -9,7 +9,7 @@
             <aside class="profile-sidebar">
                 <div class="profile-avatar">
                     {% if request.user.profile_image %}
-                        {{ request.user.profile_image.url }}
+                        <img src="{{ request.user.profile_image.url }}" alt="Profile Image">
                     {% else %}
                         {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
                     {% endif %}

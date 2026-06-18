@@ -11,7 +11,7 @@ class CloudinaryMediaStorage(Storage):
     def _save(self, name, content):
         folder = getattr(settings, "CLOUDINARY_FOLDER", "room_finder")
 
-        extension = name.split(".")[-1] if "." in name else ""
+        # extension = name.split(".")[-1] if "." in name else ""
         base_name = name.rsplit(".", 1)[0]
 
         unique_name = f"{base_name}_{uuid.uuid4().hex[:10]}"
