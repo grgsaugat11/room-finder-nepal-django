@@ -134,10 +134,10 @@ class EmailOTP(models.Model):
     )
 
     otp = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def is_expired(self):
-        return timezone.now() > self.created_at + timedelta(minutes=5)
+        return timezone.now() > self.created_at + timedelta(minutes=10)
 
     @staticmethod
     def generate_otp():

@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 
 from .forms import RegisterForm, LoginForm, OTPVerificationForm, ProfileUpdateForm
 from .models import EmailOTP
+from django.utils import timezone
 
 
 def send_otp_email(user):
@@ -16,13 +17,14 @@ def send_otp_email(user):
     EmailOTP.objects.update_or_create(
         user=user,
         defaults={
-            'otp': otp_code
+            'otp': otp_code,
+            'created_at': timezone.now(),
         }
     )
 
     send_mail(
         subject='Room Finder Email Verification OTP',
-        message=f'Your Room Finder verification OTP is: {otp_code}. It expires in 5 minutes.',
+        message=f'Your Room Finder verification OTP is: {otp_code}. It expires in 10 minutes.',
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
         fail_silently=False,
