@@ -1,7 +1,9 @@
+import uuid
+
 from django.core.files.storage import Storage
-from django.core.files.base import ContentFile
 from django.conf import settings
-from cloudinary.uploader import upload, destroy
+
+import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 
 
@@ -9,12 +11,17 @@ class CloudinaryMediaStorage(Storage):
     def _save(self, name, content):
         folder = getattr(settings, "CLOUDINARY_FOLDER", "room_finder")
 
-        result = upload(
+        extension = name.split(".")[-1] if "." in name else ""
+        base_name = name.rsplit(".", 1)[0]
+
+        unique_name = f"{base_name}_{uuid.uuid4().hex[:10]}"
+
+        result = cloudinary.uploader.upload(
             content,
             folder=folder,
-            public_id=name.rsplit(".", 1)[0],
+            public_id=unique_name,
             resource_type="auto",
-            overwrite=True,
+            overwrite=False,
         )
 
         return result["public_id"]
@@ -23,8 +30,16 @@ class CloudinaryMediaStorage(Storage):
         return False
 
     def url(self, name):
-        url, _ = cloudinary_url(name, resource_type="auto")
+        url, options = cloudinary_url(
+            name,
+            resource_type="auto",
+            secure=True
+        )
         return url
 
     def delete(self, name):
-        destroy(name, resource_type="auto")
+        cloudinary.uploader.destroy(
+            name,
+            resource_type="auto",
+            invalidate=True
+        )
