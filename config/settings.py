@@ -42,11 +42,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     
     # Cloudinary
-    'cloudinary',
     'cloudinary_storage',
+    'django.contrib.staticfiles',
+    'cloudinary',
 
     # Local apps
     'apps.accounts',
@@ -134,13 +134,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 if DEBUG:
     STORAGES = {
@@ -152,9 +154,6 @@ if DEBUG:
         },
     }
 
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = BASE_DIR / 'media'
-
 else:
     STORAGES = {
         "default": {
@@ -165,8 +164,6 @@ else:
         },
     }
 
-    MEDIA_URL = '/media/'
-
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': config('CLOUDINARY_API_KEY'),
@@ -174,17 +171,26 @@ CLOUDINARY_STORAGE = {
     'FOLDER': 'room_finder',
 }
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
 AUTH_USER_MODEL = 'accounts.User'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'Room Finder Nepal <noreply@roomfinder.local>'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'Room Finder Nepal <noreply@roomfinder.local>'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = config(
+        'DEFAULT_FROM_EMAIL',
+        default=EMAIL_HOST_USER
+    )
 
 CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
