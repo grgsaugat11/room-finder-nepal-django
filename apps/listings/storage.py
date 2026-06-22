@@ -24,7 +24,7 @@ class CloudinaryMediaStorage(Storage):
             overwrite=False,
         )
 
-        return f"{result['public_id']}.{result['format']}"
+        return result["public_id"]
 
     def exists(self, name):
         return False
