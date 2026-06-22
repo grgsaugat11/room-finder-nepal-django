@@ -24,15 +24,22 @@ class CloudinaryMediaStorage(Storage):
             overwrite=False,
         )
 
-        return result["public_id"]
+        return f"{result['public_id']}.{result.get('format', '')}".rstrip(".")
 
     def exists(self, name):
         return False
 
     def url(self, name):
+        video_extensions = ('.mp4', '.mov', '.avi', '.webm', '.mkv')
+
+        if str(name).lower().endswith(video_extensions) or 'videos/' in str(name):
+            resource_type = "video"
+        else:
+            resource_type = "image"
+
         url, options = cloudinary_url(
             name,
-            resource_type="image",
+            resource_type=resource_type,
             secure=True
         )
         return url
