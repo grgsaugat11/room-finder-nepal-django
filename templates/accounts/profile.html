@@ -131,11 +131,13 @@
                     <label>{{ field.label }}</label>
 
                     {% if field.name == 'profile_image' %}
-                        {% if request.user.profile_image %}
-                            <div class="current-profile-image">
-                                <img src="{{ request.user.profile_image.url }}" alt="Current Profile Image">
-                            </div>
-                        {% endif %}
+                        <div class="profile-avatar">
+                            {% if request.user.profile_image %}
+                                <img src="{{ request.user.profile_image.url }}" alt="Profile Image">
+                            {% else %}
+                                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+                            {% endif %}
+                        </div>
 
                         <div class="file-upload-wrapper">
                             <span class="upload-icon">📁</span>
