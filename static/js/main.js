@@ -248,3 +248,95 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("propertyImages");
+    const preview = document.getElementById("selectedImagePreview");
+    const modal = document.getElementById("imagePreviewModal");
+    const modalImg = document.getElementById("expandedImagePreview");
+    const closeModal = document.getElementById("closeImagePreview");
+
+    if (!input || !preview) return;
+
+    let selectedFiles = [];
+
+    input.addEventListener("change", function () {
+        const newFiles = Array.from(input.files);
+
+        newFiles.forEach(file => {
+            const alreadyExists = selectedFiles.some(existingFile =>
+                existingFile.name === file.name &&
+                existingFile.size === file.size &&
+                existingFile.lastModified === file.lastModified
+            );
+
+            if (!alreadyExists) {
+                selectedFiles.push(file);
+            }
+        });
+
+        updateInputFiles();
+        renderPreview();
+    });
+
+    function updateInputFiles() {
+        const dataTransfer = new DataTransfer();
+
+        selectedFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+
+        input.files = dataTransfer.files;
+    }
+
+    function renderPreview() {
+        preview.innerHTML = "";
+
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                const item = document.createElement("div");
+                item.className = "selected-image-item";
+
+                const img = document.createElement("img");
+                img.src = event.target.result;
+                img.alt = file.name;
+
+                img.addEventListener("click", function () {
+                    modalImg.src = event.target.result;
+                    modal.classList.add("show");
+                });
+
+                const removeBtn = document.createElement("button");
+                removeBtn.type = "button";
+                removeBtn.className = "remove-selected-image";
+                removeBtn.innerHTML = "&times;";
+
+                removeBtn.addEventListener("click", function () {
+                    selectedFiles.splice(index, 1);
+                    updateInputFiles();
+                    renderPreview();
+                });
+
+                item.appendChild(img);
+                item.appendChild(removeBtn);
+                preview.appendChild(item);
+            };
+
+            reader.readAsDataURL(file);
+        });
+    }
+
+    closeModal.addEventListener("click", function () {
+        modal.classList.remove("show");
+        modalImg.src = "";
+    });
+
+    modal.addEventListener("click", function (event) {
+        if (event.target === modal) {
+            modal.classList.remove("show");
+            modalImg.src = "";
+        }
+    });
+});

@@ -1031,6 +1031,76 @@ img {
   pointer-events: none;
 }
 
+.selected-image-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.selected-image-item {
+    position: relative;
+    height: 110px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+}
+
+.selected-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    display: block;
+}
+
+.remove-selected-image {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.85);
+    color: white;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.image-preview-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.85);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.image-preview-modal.show {
+    display: flex;
+}
+
+.image-preview-modal img {
+    max-width: 92vw;
+    max-height: 88vh;
+    border-radius: 12px;
+    object-fit: contain;
+}
+
+.image-preview-close {
+    position: absolute;
+    top: 20px;
+    right: 28px;
+    color: white;
+    font-size: 38px;
+    cursor: pointer;
+}
+
 /* =========================
    PASSWORD FIELD TOGGLE
 ========================= */
