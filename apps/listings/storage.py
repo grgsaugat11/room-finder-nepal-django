@@ -24,7 +24,7 @@ class CloudinaryMediaStorage(Storage):
             overwrite=False,
         )
 
-        return result["public_id"]
+        return f"{result['public_id']}.{result['format']}"
 
     def exists(self, name):
         return False
@@ -32,7 +32,7 @@ class CloudinaryMediaStorage(Storage):
     def url(self, name):
         url, options = cloudinary_url(
             name,
-            resource_type="auto",
+            resource_type="image",
             secure=True
         )
         return url
