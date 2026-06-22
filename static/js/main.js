@@ -1,63 +1,59 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const provinceSelect = document.getElementById('province-select');
-    const districtSelect = document.getElementById('district-select');
+    const filterPairs = [
+        {
+            province: document.getElementById('id_province'),
+            district: document.getElementById('id_district'),
+            emptyText: '---------'
+        },
+        {
+            province: document.getElementById('province-select'),
+            district: document.getElementById('district-select'),
+            emptyText: 'All Districts'
+        }
+    ];
 
-    if (!provinceSelect || !districtSelect) {
-        return;
-    }
+    filterPairs.forEach(function (pair) {
+        if (!pair.province || !pair.district) return;
 
-    const selectedDistrict = districtSelect.dataset.selected || '';
+        const selectedDistrict = pair.district.dataset.selected || pair.district.value || '';
 
-    function loadDistricts(provinceId, selectedDistrictId = '') {
-        districtSelect.innerHTML = '<option value="">Loading districts...</option>';
+        function loadDistricts(provinceId, keepSelectedDistrict = '') {
+            const url = '/ajax/load-districts/?province_id=' + encodeURIComponent(provinceId || '');
 
-        let url = '/ajax/load-districts/';
+            fetch(url)
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    pair.district.innerHTML = '';
 
-        if (provinceId) {
-            url += `?province_id=${provinceId}`;
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = pair.emptyText;
+                    pair.district.appendChild(defaultOption);
+
+                    data.districts.forEach(function (district) {
+                        const option = document.createElement('option');
+                        option.value = district.id;
+                        option.textContent = provinceId || !district.province
+                            ? district.name
+                            : district.name + ' — ' + district.province;
+
+                        if (String(district.id) === String(keepSelectedDistrict)) {
+                            option.selected = true;
+                        }
+
+                        pair.district.appendChild(option);
+                    });
+                });
         }
 
-        fetch(url)
-            .then(function (response) {
-                if (!response.ok) {
-                    throw new Error('Failed to load districts');
-                }
+        pair.province.addEventListener('change', function () {
+            loadDistricts(this.value);
+        });
 
-                return response.json();
-            })
-            .then(function (data) {
-                districtSelect.innerHTML = '<option value="">All Districts</option>';
-
-                data.districts.forEach(function (district) {
-                    const option = document.createElement('option');
-                    option.value = district.id;
-
-                    if (provinceId) {
-                        option.textContent = district.name;
-                    } else {
-                        option.textContent = `${district.name} — ${district.province}`;
-                    }
-
-                    if (String(district.id) === String(selectedDistrictId)) {
-                        option.selected = true;
-                    }
-
-                    districtSelect.appendChild(option);
-                });
-            })
-            .catch(function (error) {
-                console.error('District loading error:', error);
-                districtSelect.innerHTML = '<option value="">Could not load districts</option>';
-            });
-    }
-
-    provinceSelect.addEventListener('change', function () {
-        loadDistricts(this.value);
+        loadDistricts(pair.province.value, selectedDistrict);
     });
-
-    if (provinceSelect.value) {
-        loadDistricts(provinceSelect.value, selectedDistrict);
-    }
 });
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -130,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const uploadWrappers = document.querySelectorAll('.file-upload-wrapper');
 
     uploadWrappers.forEach(function (wrapper) {
+        if (wrapper.classList.contains('property-images-upload')) return;
+
         const input = wrapper.querySelector('input[type="file"]');
         const fileNameText = wrapper.querySelector('.selected-file-name');
         const previewBox = wrapper.querySelector('.selected-image-preview');
@@ -249,94 +247,102 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-    const input = document.getElementById("propertyImages");
-    const preview = document.getElementById("selectedImagePreview");
-    const modal = document.getElementById("imagePreviewModal");
-    const modalImg = document.getElementById("expandedImagePreview");
-    const closeModal = document.getElementById("closeImagePreview");
+document.addEventListener('DOMContentLoaded', function () {
+    const uploadBox = document.querySelector('.property-images-upload');
+    if (!uploadBox) return;
 
-    if (!input || !preview) return;
+    const imageInput = uploadBox.querySelector('input[type="file"]');
+    const fileNameText = uploadBox.querySelector('.selected-file-name');
+    const previewBox = uploadBox.querySelector('.property-image-preview-grid');
 
-    let selectedFiles = [];
+    if (!imageInput || !previewBox) return;
 
-    input.addEventListener("change", function () {
-        const newFiles = Array.from(input.files);
+    const maxImages = 15;
+    let selectedImages = [];
 
-        newFiles.forEach(file => {
-            const alreadyExists = selectedFiles.some(existingFile =>
-                existingFile.name === file.name &&
-                existingFile.size === file.size &&
-                existingFile.lastModified === file.lastModified
-            );
+    imageInput.multiple = true;
 
-            if (!alreadyExists) {
-                selectedFiles.push(file);
+    uploadBox.addEventListener('click', function (event) {
+        if (event.target.closest('.property-image-remove-btn')) return;
+        if (event.target.closest('.property-image-preview-card')) return;
+
+        imageInput.click();
+    });
+
+    previewBox.addEventListener('click', function (event) {
+        const removeBtn = event.target.closest('.property-image-remove-btn');
+
+        if (!removeBtn) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const index = Number(removeBtn.dataset.index);
+
+        selectedImages.splice(index, 1);
+        syncInputFiles();
+        renderSelectedImages();
+    }, true);
+
+    imageInput.addEventListener('change', function () {
+        Array.from(imageInput.files).forEach(function (file) {
+            const exists = selectedImages.some(function (oldFile) {
+                return oldFile.name === file.name &&
+                    oldFile.size === file.size &&
+                    oldFile.lastModified === file.lastModified;
+            });
+
+            if (!exists && selectedImages.length < maxImages) {
+                selectedImages.push(file);
             }
         });
 
-        updateInputFiles();
-        renderPreview();
+        syncInputFiles();
+        renderSelectedImages();
     });
 
-    function updateInputFiles() {
+    function syncInputFiles() {
         const dataTransfer = new DataTransfer();
 
-        selectedFiles.forEach(file => {
+        selectedImages.forEach(function (file) {
             dataTransfer.items.add(file);
         });
 
-        input.files = dataTransfer.files;
+        imageInput.files = dataTransfer.files;
     }
 
-    function renderPreview() {
-        preview.innerHTML = "";
+    function renderSelectedImages() {
+        previewBox.innerHTML = '';
 
-        selectedFiles.forEach((file, index) => {
+        if (fileNameText) {
+            fileNameText.textContent = selectedImages.length
+                ? selectedImages.length + ' files selected'
+                : 'No files selected';
+        }
+
+        selectedImages.forEach(function (file, index) {
             const reader = new FileReader();
 
             reader.onload = function (event) {
-                const item = document.createElement("div");
-                item.className = "selected-image-item";
+                const card = document.createElement('div');
+                card.className = 'property-image-preview-card';
 
-                const img = document.createElement("img");
+                const img = document.createElement('img');
                 img.src = event.target.result;
                 img.alt = file.name;
 
-                img.addEventListener("click", function () {
-                    modalImg.src = event.target.result;
-                    modal.classList.add("show");
-                });
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'property-image-remove-btn';
+                removeBtn.dataset.index = index;
+                removeBtn.textContent = '×';
 
-                const removeBtn = document.createElement("button");
-                removeBtn.type = "button";
-                removeBtn.className = "remove-selected-image";
-                removeBtn.innerHTML = "&times;";
-
-                removeBtn.addEventListener("click", function () {
-                    selectedFiles.splice(index, 1);
-                    updateInputFiles();
-                    renderPreview();
-                });
-
-                item.appendChild(img);
-                item.appendChild(removeBtn);
-                preview.appendChild(item);
+                card.appendChild(img);
+                card.appendChild(removeBtn);
+                previewBox.appendChild(card);
             };
 
             reader.readAsDataURL(file);
         });
     }
-
-    closeModal.addEventListener("click", function () {
-        modal.classList.remove("show");
-        modalImg.src = "";
-    });
-
-    modal.addEventListener("click", function (event) {
-        if (event.target === modal) {
-            modal.classList.remove("show");
-            modalImg.src = "";
-        }
-    });
 });

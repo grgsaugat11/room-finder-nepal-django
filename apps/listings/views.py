@@ -133,27 +133,23 @@ def listing_detail(request, pk):
     })
 
 def load_districts(request):
-    province_id = request.GET.get('province_id')
+    province_id = request.GET.get('province_id') or request.GET.get('province')
+
+    districts = District.objects.select_related('province').all().order_by('name')
 
     if province_id:
-        districts = District.objects.filter(
-            province_id=province_id
-        ).select_related('province').order_by('name')
-    else:
-        districts = District.objects.select_related(
-            'province'
-        ).all().order_by('name')
+        districts = districts.filter(province_id=province_id)
 
-    data = [
-        {
-            'id': district.id,
-            'name': district.name,
-            'province': district.province.name,
-        }
-        for district in districts
-    ]
-
-    return JsonResponse({'districts': data})
+    return JsonResponse({
+        'districts': [
+            {
+                'id': district.id,
+                'name': district.name,
+                'province': district.province.name,
+            }
+            for district in districts
+        ]
+    })
 
 @login_required
 def create_listing(request):
