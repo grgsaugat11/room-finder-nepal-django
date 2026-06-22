@@ -22,13 +22,17 @@ def send_otp_email(user):
         }
     )
 
-    send_mail(
-        subject='Room Finder Email Verification OTP',
-        message=f'Your Room Finder verification OTP is: {otp_code}. It expires in 10 minutes.',
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[user.email],
-        fail_silently=False,
-    )
+    try:
+        send_mail(
+            subject='Room Finder Email Verification OTP',
+            message=f'Your Room Finder verification OTP is: {otp_code}. It expires in 10 minutes.',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        print("OTP EMAIL ERROR:", repr(e), flush=True)
+        raise
 
 
 def register_view(request):
@@ -44,15 +48,25 @@ def register_view(request):
             user.email_verified = False
             user.save()
 
-            send_otp_email(user)
+            # send_otp_email(user)
 
-            request.session['verify_user_id'] = user.id
+            # request.session['verify_user_id'] = user.id
+
+            # messages.success(
+            #     request,
+            #     "Account created. Please verify your email using the OTP."
+            # )
+            # return redirect('verify_otp')
+            
+            user.email_verified = True
+            user.save(update_fields=['email_verified'])
 
             messages.success(
                 request,
-                "Account created. Please verify your email using the OTP."
+                "Account created successfully. You can now login."
             )
-            return redirect('verify_otp')
+            return redirect('login')
+        
     else:
         form = RegisterForm()
 
