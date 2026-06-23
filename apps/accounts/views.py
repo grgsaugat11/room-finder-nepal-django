@@ -10,6 +10,9 @@ from .forms import RegisterForm, LoginForm, OTPVerificationForm, ProfileUpdateFo
 from .models import EmailOTP
 from django.utils import timezone
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 def send_otp_email(user):
     otp_code = EmailOTP.generate_otp()
@@ -22,17 +25,13 @@ def send_otp_email(user):
         }
     )
 
-    try:
-        send_mail(
-            subject='Room Finder Email Verification OTP',
-            message=f'Your Room Finder verification OTP is: {otp_code}. It expires in 10 minutes.',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
-        )
-    except Exception as e:
-        print("OTP EMAIL ERROR:", repr(e), flush=True)
-        raise
+    send_mail(
+        subject='Room Finder Email Verification OTP',
+        message=f'Your Room Finder verification OTP is: {otp_code}. It expires in 10 minutes.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
 
 
 def register_view(request):
@@ -48,15 +47,15 @@ def register_view(request):
             user.email_verified = False
             user.save()
 
-            # send_otp_email(user)
+            try:
+                send_otp_email(user)
+            except Exception as e:
+                logger.exception("OTP email failed during registration")
+                user.delete()
+                form.add_error(None, "Could not send OTP email. Please check your email address or try again later.")
+                return render(request, 'accounts/register.html', {'form': form})
 
-            # request.session['verify_user_id'] = user.id
-
-            # messages.success(
-            #     request,
-            #     "Account created. Please verify your email using the OTP."
-            # )
-            # return redirect('verify_otp')
+            request.session['verify_user_id'] = user.id
             
             user.email_verified = True
             user.save(update_fields=['email_verified'])
@@ -130,7 +129,12 @@ def resend_otp_view(request):
     from .models import User
     user = User.objects.get(id=user_id)
 
-    send_otp_email(user)
+    try:
+        send_otp_email(user)
+    except Exception:
+        logger.exception("OTP resend failed")
+        messages.error(request, "Could not send OTP email. Please try again later.")
+        return redirect('verify_otp')
 
     messages.success(request, "A new OTP has been sent.")
     return redirect('verify_otp')
@@ -148,7 +152,13 @@ def login_view(request):
 
             if not user.email_verified:
                 request.session['verify_user_id'] = user.id
-                send_otp_email(user)
+                try:
+                    send_otp_email(user)
+                except Exception:
+                    logger.exception("OTP email failed during login verification")
+                    messages.error(request, "Could not send OTP email. Please try again later.")
+                    return redirect('login')
+
                 messages.warning(request, "Please verify your email first. A new OTP was sent.")
                 return redirect('verify_otp')
 
