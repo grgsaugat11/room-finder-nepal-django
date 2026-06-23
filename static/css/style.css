@@ -3339,3 +3339,114 @@ img {
     scroll-behavior: auto !important;
   }
 }
+
+/* =========================
+   ADS Dashboard
+========================= */
+
+.dashboard-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dashboard-form {
+  margin-top: 18px;
+}
+
+.dashboard-card + .dashboard-card {
+  margin-top: 28px;
+}
+
+.dashboard-card h2 {
+  margin-bottom: 18px;
+}
+
+.dashboard-card .dashboard-table {
+  margin-top: 14px;
+}
+
+.ad-preview-media {
+  width: 88px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  display: block;
+}
+
+.ad-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ad-status.active {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.ad-status.inactive {
+  color: #9f1239;
+  background: #ffe4e6;
+}
+
+.ad-stats-text {
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.inline-form {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.table-btn.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.table-btn.danger:hover {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.ad-media-upload {
+  min-height: 130px;
+  padding: 22px 18px;
+}
+
+.ad-media-upload .upload-icon {
+  font-size: 30px;
+}
+
+.ad-media-upload .selected-image-preview img {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ad-preview-media {
+    width: 72px;
+    height: 48px;
+  }
+
+  .inline-form {
+    margin-bottom: 6px;
+  }
+}

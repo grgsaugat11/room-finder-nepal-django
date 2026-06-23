@@ -290,3 +290,73 @@ def remove_reported_listing(request, pk):
         return redirect('reports_queue')
 
     return redirect('review_report', pk=report.pk)
+
+@login_required
+@admin_required
+def ads_dashboard(request):
+    ads = Advertisement.objects.all().order_by('-created_at')
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        position = request.POST.get('position')
+        link = request.POST.get('link', '')
+        start_date = request.POST.get('start_date') or None
+        end_date = request.POST.get('end_date') or None
+        image = request.FILES.get('image')
+        video = request.FILES.get('video')
+
+        if not title or not position:
+            messages.error(request, "Title and position are required.")
+            return redirect('ads_dashboard')
+
+        if not image and not video:
+            messages.error(request, "Please upload an image or video for the ad.")
+            return redirect('ads_dashboard')
+
+        Advertisement.objects.create(
+            title=title,
+            position=position,
+            link=link,
+            start_date=start_date,
+            end_date=end_date,
+            image=image,
+            video=video,
+            is_active=True,
+        )
+
+        messages.success(request, "Advertisement created successfully.")
+        return redirect('ads_dashboard')
+
+    return render(request, 'dashboard/ads.html', {
+        'ads': ads,
+        'position_choices': Advertisement.POSITION_CHOICES,
+    })
+
+
+@login_required
+@admin_required
+def toggle_ad_status(request, pk):
+    ad = get_object_or_404(Advertisement, pk=pk)
+
+    if request.method == 'POST':
+        ad.is_active = not ad.is_active
+        ad.save(update_fields=['is_active'])
+
+        if ad.is_active:
+            messages.success(request, "Advertisement activated.")
+        else:
+            messages.success(request, "Advertisement deactivated.")
+
+    return redirect('ads_dashboard')
+
+
+@login_required
+@admin_required
+def delete_ad(request, pk):
+    ad = get_object_or_404(Advertisement, pk=pk)
+
+    if request.method == 'POST':
+        ad.delete()
+        messages.success(request, "Advertisement deleted successfully.")
+
+    return redirect('ads_dashboard')
