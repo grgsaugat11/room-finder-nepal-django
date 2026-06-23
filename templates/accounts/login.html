@@ -49,6 +49,10 @@
                     </div>
                 {% endfor %}
 
+                <a href="{% url 'password_reset' %}" class="auth-link">
+                    Forgot password?
+                </a>
+
                 <button type="submit" class="submit-btn">Login</button>
             </form>
 
