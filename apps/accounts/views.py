@@ -50,7 +50,8 @@ def register_view(request):
 
             try:
                 send_otp_email(user)
-            except Exception:
+            except Exception as e:
+                print("OTP EMAIL ERROR:", repr(e), flush=True)
                 user.delete()
                 messages.error(
                     request,
@@ -130,10 +131,8 @@ def resend_otp_view(request):
 
     try:
         send_otp_email(user)
-    except Exception:
-        logger.exception("OTP resend failed")
-        messages.error(request, "Could not send OTP email. Please try again later.")
-        return redirect('verify_otp')
+    except Exception as e:
+        print("OTP EMAIL ERROR:", repr(e), flush=True)
 
     messages.success(request, "A new OTP has been sent.")
     return redirect('verify_otp')
@@ -153,10 +152,8 @@ def login_view(request):
                 request.session['verify_user_id'] = user.id
                 try:
                     send_otp_email(user)
-                except Exception:
-                    logger.exception("OTP email failed during login verification")
-                    messages.error(request, "Could not send OTP email. Please try again later.")
-                    return redirect('login')
+                except Exception as e:
+                    print("OTP EMAIL ERROR:", repr(e), flush=True)
 
                 messages.warning(request, "Please verify your email first. A new OTP was sent.")
                 return redirect('verify_otp')
