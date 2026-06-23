@@ -45,27 +45,26 @@ def register_view(request):
             user = form.save(commit=False)
             user.username = user.email
             user.email_verified = False
+            user.is_active = True
             user.save()
 
             try:
                 send_otp_email(user)
-            except Exception as e:
-                logger.exception("OTP email failed during registration")
+            except Exception:
                 user.delete()
-                form.add_error(None, "Could not send OTP email. Please check your email address or try again later.")
-                return render(request, 'accounts/register.html', {'form': form})
+                messages.error(
+                    request,
+                    "Could not send OTP email. Please try again later."
+                )
+                return redirect('register')
 
             request.session['verify_user_id'] = user.id
-            
-            user.email_verified = True
-            user.save(update_fields=['email_verified'])
 
             messages.success(
                 request,
-                "Account created successfully. You can now login."
+                "Account created. Please verify your email using the OTP."
             )
-            return redirect('login')
-        
+            return redirect('verify_otp')
     else:
         form = RegisterForm()
 
