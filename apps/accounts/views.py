@@ -48,24 +48,31 @@ def register_view(request):
             user.is_active = True
             user.save()
 
-            try:
-                send_otp_email(user)
-            except Exception as e:
-                print("OTP EMAIL ERROR:", repr(e), flush=True)
-                user.delete()
-                messages.error(
-                    request,
-                    "Could not send OTP email. Please try again later."
-                )
-                return redirect('register')
+            # try:
+            #     send_otp_email(user)
+            # except Exception as e:
+            #     print("OTP EMAIL ERROR:", repr(e), flush=True)
+            #     user.delete()
+            #     messages.error(
+            #         request,
+            #         "Could not send OTP email. Please try again later."
+            #     )
+            #     return redirect('register')
 
-            request.session['verify_user_id'] = user.id
+            # request.session['verify_user_id'] = user.id
 
-            messages.success(
-                request,
-                "Account created. Please verify your email using the OTP."
-            )
-            return redirect('verify_otp')
+            # messages.success(
+            #     request,
+            #     "Account created. Please verify your email using the OTP."
+            # )
+            # return redirect('verify_otp')
+            
+            # TEMPORARILY DISABLED OTP FOR DEPLOYMENT
+            user.email_verified = True
+            user.save(update_fields=["email_verified"])
+
+            messages.success(request, "Account created successfully. You can now log in.")
+            return redirect("login")
     else:
         form = RegisterForm()
 
@@ -148,15 +155,16 @@ def login_view(request):
         if form.is_valid():
             user = form.cleaned_data['user']
 
-            if not user.email_verified:
-                request.session['verify_user_id'] = user.id
-                try:
-                    send_otp_email(user)
-                except Exception as e:
-                    print("OTP EMAIL ERROR:", repr(e), flush=True)
+            # TEMPORARILY DISABLED OTP FOR DEPLOYMENT
+            # if not user.email_verified:
+            #     request.session['verify_user_id'] = user.id
+            #     try:
+            #         send_otp_email(user)
+            #     except Exception as e:
+            #         print("OTP EMAIL ERROR:", repr(e), flush=True)
 
-                messages.warning(request, "Please verify your email first. A new OTP was sent.")
-                return redirect('verify_otp')
+            #     messages.warning(request, "Please verify your email first. A new OTP was sent.")
+            #     return redirect('verify_otp')
 
             login(request, user)
             messages.success(request, "Logged in successfully.")
