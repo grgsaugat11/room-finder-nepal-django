@@ -1,164 +1,81 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
+<section class="hero home-hero">
+    <div class="container hero-layout">
+        <div class="hero-copy">
+            <span class="eyebrow"><span class="live-dot"></span> A NEW PLACE. A NEW CHAPTER.</span>
+            <h1>Find a place<br>to call <em>home.</em></h1>
+            <p>From a cozy room to a little more space. Discover admin-reviewed rentals across Nepal and find the one that feels like you.</p>
+            <a class="hero-link" href="#search-homes">Explore available homes <span aria-hidden="true">↗</span></a>
+            <div class="hero-trust"><span class="trust-symbol" aria-hidden="true">✓</span><div><strong>Search with a little more confidence</strong><span>Reviewed listings. Direct owner connections.</span></div></div>
+        </div>
+        <div class="hero-visual">
+            <img class="hero-photo" src="{% static 'images/properties/home-exterior.jpg' %}" width="1600" height="1067" alt="A bright modern home with a pool and an open terrace" fetchpriority="high">
+            <span class="photo-caption">A little inspiration for your next chapter</span>
+            <div class="floating-note"><span aria-hidden="true">⌂</span><div><strong>Your next chapter starts here</strong><small>Rooms, flats & homes across Nepal</small></div></div>
+        </div>
+    </div>
+</section>
 
-<section class="hero">
+<section class="search-section" id="search-homes" aria-labelledby="search-heading">
     <div class="container">
-        <h1>Find Verified Rooms in Nepal</h1>
-        <p>Search trusted rooms, flats, hostels, and rental spaces verified by admins.</p>
-
-        <form method="GET" class="search-box">
-            <input
-                type="text"
-                name="q"
-                placeholder="Search by location, room title, city..."
-                value="{{ request.GET.q }}"
-            >
-
-            <select name="province" id="province-select">
-                <option value="">All Provinces</option>
-                {% for province in provinces %}
-                    <option value="{{ province.id }}"
-                        {% if request.GET.province == province.id|stringformat:"s" %}selected{% endif %}
-                    >
-                        {{ province.name }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <select name="district" id="district-select" data-selected="{{ selected_district|default:'' }}">
-                <option value="">All Districts</option>
-
-                {% for district in districts %}
-                    <option value="{{ district.id }}"
-                        {% if selected_district == district.id|stringformat:"s" %}selected{% endif %}
-                    >
-                        {{ district.name }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <select name="property_type">
-                <option value="">Property Type</option>
-                {% for value, label in property_types %}
-                    <option value="{{ value }}"
-                        {% if request.GET.property_type == value %}selected{% endif %}
-                    >
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <input
-                type="number"
-                name="min_price"
-                placeholder="Min Price"
-                value="{{ request.GET.min_price }}"
-            >
-
-            <input
-                type="number"
-                name="max_price"
-                placeholder="Max Price"
-                value="{{ request.GET.max_price }}"
-            >
-
-            <select name="furnished_status">
-                <option value="">Furnished Status</option>
-                {% for value, label in furnished_choices %}
-                    <option value="{{ value }}"
-                        {% if request.GET.furnished_status == value %}selected{% endif %}
-                    >
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
-
-            <select name="sort">
-                <option value="">Latest</option>
-                <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>
-                    Price Low-High
-                </option>
-                <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>
-                    Price High-Low
-                </option>
-            </select>
-
-            <button type="submit">Search</button>
+        <form method="GET" action="{% url 'home' %}#available-homes" class="search-box home-search">
+            <div class="search-heading"><h2 id="search-heading">Where would you like to live?</h2><span>Find your kind of space</span></div>
+            <div class="search-primary">
+                <div class="search-field search-query"><label for="search-query">LOCATION OR KEYWORD</label><input id="search-query" type="search" name="q" placeholder="Try Kathmandu, Pokhara, a cozy flat…" value="{{ request.GET.q|default:'' }}"></div>
+                <div class="search-field"><label for="property-type">PROPERTY TYPE</label><select name="property_type" id="property-type"><option value="">All spaces</option>{% for value, label in property_types %}<option value="{{ value }}" {% if request.GET.property_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+                <button type="submit" class="search-submit"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg> Find a home</button>
+            </div>
+            <details class="search-filters" {% if filters_open %}open{% endif %}>
+                <summary>Refine your search <span>Province, budget & more <span aria-hidden="true">＋</span></span></summary>
+                <div class="filter-grid">
+                    <div class="search-field"><label for="province-select">Province</label><select name="province" id="province-select"><option value="">All provinces</option>{% for province in provinces %}<option value="{{ province.id }}" {% if selected_province == province.id|stringformat:'s' %}selected{% endif %}>{{ province.name }}</option>{% endfor %}</select></div>
+                    <div class="search-field"><label for="district-select">District</label><select name="district" id="district-select" data-selected="{{ selected_district|default:'' }}"><option value="">All districts</option>{% for district in districts %}<option value="{{ district.id }}" {% if selected_district == district.id|stringformat:'s' %}selected{% endif %}>{{ district.name }}</option>{% endfor %}</select></div>
+                    <div class="search-field"><label for="min-price">Min. rent (NPR)</label><input id="min-price" type="number" min="0" name="min_price" placeholder="No minimum" value="{{ request.GET.min_price|default:'' }}"></div>
+                    <div class="search-field"><label for="max-price">Max. rent (NPR)</label><input id="max-price" type="number" min="0" name="max_price" placeholder="No maximum" value="{{ request.GET.max_price|default:'' }}"></div>
+                    <div class="search-field"><label for="furnished-status">Furnishing</label><select name="furnished_status" id="furnished-status"><option value="">Any furnishing</option>{% for value, label in furnished_choices %}<option value="{{ value }}" {% if request.GET.furnished_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+                    <div class="search-field"><label for="sort-order">Sort by</label><select name="sort" id="sort-order"><option value="">Newest first</option><option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Rent: low to high</option><option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Rent: high to low</option></select></div>
+                </div>
+            </details>
         </form>
     </div>
 </section>
 
-{% if home_top_ad %}
-<section class="ad-banner">
-    <div class="container">
-        {% include 'includes/ad_display.html' with ad=home_top_ad extra_class='home-top-ad' %}
-    </div>
-</section>
-{% endif %}
+{% if home_top_ad %}<section class="ad-banner"><div class="container">{% include 'includes/ad_display.html' with ad=home_top_ad extra_class='home-top-ad' %}</div></section>{% endif %}
 
-<section class="rooms-section">
+<section class="rooms-section home-rooms" id="available-homes">
     <div class="container">
         <div class="section-header">
-            <h2>Available Verified Rooms</h2>
-            <p>{{ page_obj.paginator.count }} listing{{ page_obj.paginator.count|pluralize }} found</p>
+            <div><span class="eyebrow">SPACES FOR YOUR EVERYDAY</span><h2>{% if has_filters %}Your search, your possibilities{% else %}A place for every kind of living{% endif %}</h2><p>{{ page_obj.paginator.count }} admin-reviewed listing{{ page_obj.paginator.count|pluralize }} to explore</p></div>
+            {% if has_filters %}<a class="clear-filter-btn" href="{% url 'home' %}#available-homes">Clear filters <span aria-hidden="true">×</span></a>{% else %}<span class="section-note"><span class="live-dot"></span> Find your next place</span>{% endif %}
         </div>
-
-        <div class="room-grid">
+        <div class="room-grid {% if listings|length < 3 %}room-grid-compact{% endif %}">
             {% for listing in listings %}
-                <div class="room-card">
-                    <div class="room-image">
-                        {% if listing.primary_image %}
-                            <img src="{{ listing.primary_image.url }}" alt="{{ listing.title }}">
-                        {% else %}
-                            <div class="no-image">No Image</div>
-                        {% endif %}
-
-                        {% if listing.is_approved %}
-                            <span class="verified-badge">Verified</span>
-                        {% endif %}
-                    </div>
-
-                    <div class="room-body">
-                        <h3>{{ listing.title }}</h3>
-
-                        <p class="location">
-                            {{ listing.district.name }}, {{ listing.city }}
-                        </p>
-
-                        <p class="description">
-                            {{ listing.short_description }}
-                        </p>
-
-                        <div class="price">
-                            NPR {{ listing.monthly_rent }} / month
-                        </div>
-
-                        <a href="{% url 'listing_detail' listing.pk %}" class="details-btn">
-                            View Details
-                        </a>
-                    </div>
+            <article class="room-card">
+                <div class="room-image">
+                    <a href="{% url 'listing_detail' listing.pk %}" tabindex="-1" aria-hidden="true">{% if listing.primary_image %}<img src="{{ listing.primary_image.url }}" alt="" loading="lazy" decoding="async">{% else %}<div class="no-image">Property photos coming soon</div>{% endif %}</a>
+                    <span class="verified-badge"><span aria-hidden="true">✓</span> Admin reviewed</span>
+                    {% if listing.uses_sample_photos %}<span class="sample-photo-label">Sample photo</span>{% endif %}
+                    <span class="property-chip">{{ listing.get_property_type_display }}</span>
                 </div>
-
-                {% if forloop.counter|divisibleby:6 and home_between_ad %}
-                    {% include 'includes/ad_display.html' with ad=home_between_ad extra_class='card-ad' %}
-                {% endif %}
-
-            {% empty %}
-                <div class="empty-state">
-                    <h3>No rooms found</h3>
-                    <p>Try changing your search or filter options.</p>
+                <div class="room-body">
+                    <p class="location"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 10c0 6-8 11-8 11S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>{{ listing.city }}, {{ listing.district.name }}</p>
+                    <h3><a href="{% url 'listing_detail' listing.pk %}">{{ listing.title }}</a></h3>
+                    <p class="description">{{ listing.short_description }}</p>
+                    <div class="room-meta"><span>{{ listing.get_furnished_status_display }}</span>{% if listing.facilities.balcony %}<span>Balcony</span>{% endif %}{% if listing.facilities.wifi %}<span>WiFi</span>{% endif %}</div>
+                    <div class="room-card-bottom"><div class="price"><small>NPR</small> {{ listing.monthly_rent }} <span>/ month</span></div><a href="{% url 'listing_detail' listing.pk %}" class="card-arrow" aria-label="View {{ listing.title }}"><span aria-hidden="true">↗</span></a></div>
                 </div>
-            {% endfor %}
+            </article>
+            {% if forloop.counter|divisibleby:6 and home_between_ad %}{% include 'includes/ad_display.html' with ad=home_between_ad extra_class='card-ad' %}{% endif %}
+            {% empty %}<div class="empty-state"><span class="empty-icon" aria-hidden="true">⌂</span><h3>Your next home is still out there</h3><p>Try a different location or a wider budget to discover more spaces.</p><a href="{% url 'home' %}#search-homes" class="clear-filter-btn">Reset your search</a></div>{% endfor %}
         </div>
         {% include 'includes/pagination.html' %}
     </div>
 </section>
 
-{% endblock %}
+<section class="how-it-works"><div class="container"><div class="section-header"><div><span class="eyebrow">LESS HASSLE. MORE HOME.</span><h2>A simpler way to settle in.</h2></div></div><div class="steps-grid"><div><span class="step-number">01</span><h3>Find your space</h3><p>Explore rooms and homes by location, budget and the things that matter to you.</p></div><div><span class="step-number">02</span><h3>Get to know the place</h3><p>Compare property details, check the facilities and save your favorites.</p></div><div><span class="step-number">03</span><h3>Connect with the owner</h3><p>Reveal the contact number and arrange a visit. Your next chapter is one call away.</p></div></div></div></section>
 
-<!-- {% block scripts %}
-<script>
-    window.selectedDistrict = "{{ selected_district|default:'' }}";
-</script>
-{% endblock %} -->
+<section class="owner-section"><div class="container owner-banner"><div><span class="eyebrow">HAVE A SPACE TO SHARE?</span><h2>Good spaces deserve great tenants.</h2><p>List your property and help someone find their next home.</p></div><a class="owner-cta" href="{% if request.user.is_authenticated and request.user.is_landlord %}{% url 'create_listing' %}{% elif request.user.is_authenticated %}{% url 'profile' %}{% else %}{% url 'register' %}{% endif %}">{% if request.user.is_authenticated and not request.user.is_landlord %}View your profile{% else %}List your space{% endif %} <span aria-hidden="true">↗</span></a></div></section>
+{% endblock %}

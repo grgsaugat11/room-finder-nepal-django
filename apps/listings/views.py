@@ -1,25 +1,36 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import F, Q
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 
 from apps.locations.models import Province, District
 from .models import Listing, ListingImage, ListingDocument
-from .forms import ListingForm, ListingFacilityForm, ListingDocumentForm, MultipleImageUploadForm
+from .forms import ListingForm, ListingFacilityForm, ListingDocumentForm, MultipleImageUploadForm, ListingImageEditForm
 from django.core.paginator import Paginator
 from apps.advertisements.models import Advertisement
 from apps.advertisements.utils import get_active_ad
 
+def nonnegative_integer(value):
+    try:
+        number = int(value)
+        # Keep user-supplied values within database integer bounds.
+        return number if 0 <= number <= 2147483647 else None
+    except (TypeError, ValueError):
+        return None
+
+
 def home(request):
-    listings = Listing.objects.filter(status=Listing.STATUS_APPROVED)
+    listings = Listing.objects.filter(status=Listing.STATUS_APPROVED).select_related(
+        'province', 'district', 'facilities'
+    ).prefetch_related('images')
 
     query = request.GET.get('q')
-    province_id = request.GET.get('province')
-    district_id = request.GET.get('district')
+    province_id = nonnegative_integer(request.GET.get('province'))
+    district_id = nonnegative_integer(request.GET.get('district'))
     property_type = request.GET.get('property_type')
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
+    min_price = nonnegative_integer(request.GET.get('min_price'))
+    max_price = nonnegative_integer(request.GET.get('max_price'))
     furnished_status = request.GET.get('furnished_status')
     sort = request.GET.get('sort')
 
@@ -42,24 +53,26 @@ def home(request):
     if property_type:
         listings = listings.filter(property_type=property_type)
 
-    if min_price:
+    if min_price is not None:
         listings = listings.filter(monthly_rent__gte=min_price)
 
-    if max_price:
+    if max_price is not None:
         listings = listings.filter(monthly_rent__lte=max_price)
 
     if furnished_status:
         listings = listings.filter(furnished_status=furnished_status)
 
     if sort == 'price_low':
-        listings = listings.order_by('monthly_rent')
+        listings = listings.order_by('monthly_rent', '-pk')
     elif sort == 'price_high':
-        listings = listings.order_by('-monthly_rent')
+        listings = listings.order_by('-monthly_rent', '-pk')
     else:
-        listings = listings.order_by('-created_at')
+        listings = listings.order_by('-created_at', '-pk')
 
     provinces = Province.objects.all()
     districts = District.objects.select_related('province').all().order_by('name')
+    if province_id:
+        districts = districts.filter(province_id=province_id)
 
     page_obj, query_string = paginate_queryset(request, listings, per_page=9)
     
@@ -73,8 +86,12 @@ def home(request):
         'provinces': provinces,
         'property_types': Listing.PROPERTY_TYPE_CHOICES,
         'furnished_choices': Listing.FURNISHED_CHOICES,
-        'selected_province': province_id,
-        'selected_district': district_id,
+        'selected_province': str(province_id) if province_id else '',
+        'selected_district': str(district_id) if district_id else '',
+        'has_filters': any(value for key, value in request.GET.items() if key != 'page'),
+        'filters_open': any(request.GET.get(key) for key in (
+            'province', 'district', 'min_price', 'max_price', 'furnished_status', 'sort'
+        )),
         'home_top_ad': home_top_ad,
         'home_between_ad': home_between_ad,
         'districts': districts,
@@ -101,13 +118,13 @@ def paginate_queryset(request, queryset, per_page=9):
 
 def listing_detail(request, pk):
     listing = get_object_or_404(
-        Listing,
+        Listing.objects.select_related('owner', 'province', 'district', 'facilities').prefetch_related('images'),
         pk=pk,
         status=Listing.STATUS_APPROVED
     )
 
+    Listing.objects.filter(pk=listing.pk).update(views_count=F('views_count') + 1)
     listing.views_count += 1
-    listing.save(update_fields=['views_count'])
 
     is_favorited = False
 
@@ -133,7 +150,10 @@ def listing_detail(request, pk):
     })
 
 def load_districts(request):
-    province_id = request.GET.get('province_id') or request.GET.get('province')
+    province_value = request.GET.get('province_id') or request.GET.get('province')
+    province_id = nonnegative_integer(province_value)
+    if province_value and province_id is None:
+        return JsonResponse({'districts': [], 'error': 'Invalid province.'}, status=400)
 
     districts = District.objects.select_related('province').all().order_by('name')
 
@@ -167,12 +187,10 @@ def create_listing(request):
         document_form = ListingDocumentForm(request.POST, request.FILES)
         image_form = MultipleImageUploadForm(request.POST, request.FILES)
 
-        if (
-            listing_form.is_valid()
-            and facility_form.is_valid()
-            and document_form.is_valid()
-            and image_form.is_valid()
-        ):
+        valid_forms = [form.is_valid() for form in (
+            listing_form, facility_form, document_form, image_form
+        )]
+        if all(valid_forms):
             listing = listing_form.save(commit=False)
             listing.owner = request.user
             listing.status = Listing.STATUS_PENDING
@@ -259,8 +277,12 @@ def edit_listing(request, pk):
         listing_valid = listing_form.is_valid()
         facility_valid = facility_form.is_valid()
         document_valid = document_form.is_valid()
+        image_form = ListingImageEditForm(
+            request.POST, request.FILES, current_image_count=listing.images.count()
+        )
+        image_valid = image_form.is_valid()
 
-        if listing_valid and facility_valid and document_valid:
+        if listing_valid and facility_valid and document_valid and image_valid:
             listing = listing_form.save(commit=False)
 
             # Any edit sends listing back to admin review.
@@ -282,14 +304,7 @@ def edit_listing(request, pk):
             documents.reviewed_at = None
             documents.save()
 
-            new_images = request.FILES.getlist('new_images')
-
-            current_image_count = listing.images.count()
-            total_image_count = current_image_count + len(new_images)
-
-            if total_image_count > 15:
-                messages.error(request, "You can have maximum 15 images per listing.")
-                return redirect('edit_listing', pk=listing.pk)
+            new_images = image_form.cleaned_data['new_images']
 
             for image in new_images:
                 ListingImage.objects.create(
@@ -316,12 +331,14 @@ def edit_listing(request, pk):
         listing_form = ListingForm(instance=listing)
         facility_form = ListingFacilityForm(instance=facilities)
         document_form = ListingDocumentForm(instance=documents)
+        image_form = ListingImageEditForm(current_image_count=listing.images.count())
 
     return render(request, 'listings/edit_listing.html', {
         'listing': listing,
         'listing_form': listing_form,
         'facility_form': facility_form,
         'document_form': document_form,
+        'image_form': image_form,
     })
 
 

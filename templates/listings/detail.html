@@ -3,16 +3,18 @@
 {% block content %}
 
 <section class="detail-section">
+    <div class="container detail-breadcrumb"><a href="{% url 'home' %}#available-homes">Explore homes</a><span aria-hidden="true">/</span>{{ listing.get_property_type_display }}</div>
     <div class="container detail-layout">
 
         <div class="detail-main">
             <div class="gallery">
                 {% for image in listing.images.all %}
-                    <img src="{{ image.image.url }}" alt="{{ listing.title }}">
+                    <img src="{{ image.image.url }}" alt="{{ listing.title }} — photo {{ forloop.counter }}" {% if not forloop.first %}loading="lazy"{% endif %} decoding="async">
                 {% empty %}
                     <div class="no-image detail-no-image">No Images Available</div>
                 {% endfor %}
             </div>
+            {% if listing.uses_sample_photos %}<p class="sample-photo-note">Sample property photography for this demo listing. Ask the owner for current photos before arranging a visit.</p>{% endif %}
 
             {% if detail_below_images_ad %}
                 {% include 'includes/ad_display.html' with ad=detail_below_images_ad extra_class='detail-ad' %}
@@ -122,6 +124,7 @@
                 {% endif %}
 
                 <div class="phone-box">
+                    {% csrf_token %}
                     {% if phone_already_revealed %}
                         <p id="real-phone">{{ listing.owner.phone }}</p>
                     {% else %}
@@ -149,7 +152,7 @@
 
                         <div class="reward-video-wrap">
                             {% if phone_reveal_ad and phone_reveal_ad.video %}
-                                <video id="reward-video" autoplay muted playsinline controls>
+                                <video id="reward-video" muted playsinline controls preload="none">
                                     <source src="{{ phone_reveal_ad.video.url }}" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>
@@ -224,24 +227,30 @@
     const rewardVideo = document.getElementById('reward-video');
 
     let phoneRevealed = false;
+    let revealPending = false;
+    let adTimer = null;
 
     function revealPhone() {
-        if (phoneRevealed || !revealBtn) {
+        if (phoneRevealed || revealPending || !revealBtn) {
             return;
         }
 
-        phoneRevealed = true;
+        revealPending = true;
 
         fetch(revealBtn.dataset.url, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
                 'X-Requested-With': 'XMLHttpRequest',
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Phone request failed');
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
+                phoneRevealed = true;
                 hiddenPhone.style.display = 'none';
                 realPhone.textContent = data.phone;
                 realPhone.style.display = 'block';
@@ -252,18 +261,23 @@
                 skipBtn.disabled = false;
                 skipBtn.textContent = 'Skip Ad / Close';
             } else {
-                rewardStatus.textContent = 'Could not reveal phone number. Try again.';
+                throw new Error('Phone number unavailable');
             }
         })
         .catch(error => {
             console.error(error);
             rewardStatus.textContent = 'Something went wrong. Try again.';
-        });
+            countdownText.textContent = 'Please retry';
+            skipBtn.disabled = false;
+            skipBtn.textContent = 'Close / Try again';
+        })
+        .finally(() => { revealPending = false; });
     }
 
     if (revealBtn && modal) {
         revealBtn.addEventListener('click', function () {
             modal.classList.add('show');
+            if (adTimer) clearInterval(adTimer);
 
             if (rewardVideo) {
                 rewardVideo.play().catch(() => {});
@@ -275,12 +289,13 @@
             skipBtn.disabled = true;
             skipBtn.textContent = 'Skip Ad';
 
-            const timer = setInterval(function () {
+            adTimer = setInterval(function () {
                 seconds -= 1;
                 countdownText.textContent = `Ad ends in ${seconds}s`;
 
                 if (seconds <= 0) {
-                    clearInterval(timer);
+                    clearInterval(adTimer);
+                    adTimer = null;
                     revealPhone();
                 }
             }, 1000);
@@ -289,7 +304,7 @@
 
     if (skipBtn) {
         skipBtn.addEventListener('click', function () {
-            if (!phoneRevealed) {
+            if (skipBtn.disabled || revealPending) {
                 return;
             }
 

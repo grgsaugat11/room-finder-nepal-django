@@ -1,7 +1,8 @@
 {% if ad %}
     <div class="real-ad-box {{ extra_class }}">
+        <span class="ad-label">Sponsored</span>
         {% if ad.link %}
-            <a href="{% url 'ad_click' ad.id %}" target="_blank">
+            <a href="{% url 'ad_click' ad.id %}" target="_blank" rel="noopener noreferrer">
                 {% if ad.video %}
                     <video autoplay muted loop playsinline>
                         <source src="{{ ad.video.url }}" type="video/mp4">

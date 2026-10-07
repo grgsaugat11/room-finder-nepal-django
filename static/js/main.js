@@ -16,12 +16,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!pair.province || !pair.district) return;
 
         const selectedDistrict = pair.district.dataset.selected || pair.district.value || '';
+        let activeRequest;
 
         function loadDistricts(provinceId, keepSelectedDistrict = '') {
+            if (activeRequest) activeRequest.abort();
+            activeRequest = new AbortController();
             const url = '/ajax/load-districts/?province_id=' + encodeURIComponent(provinceId || '');
 
-            fetch(url)
+            fetch(url, { signal: activeRequest.signal })
                 .then(function (response) {
+                    if (!response.ok) throw new Error('Unable to load districts');
                     return response.json();
                 })
                 .then(function (data) {
@@ -45,6 +49,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         pair.district.appendChild(option);
                     });
+                })
+                .catch(function (error) {
+                    if (error.name === 'AbortError') return;
+                    // Keep the server-rendered choices usable if the network fails.
+                    console.error('District loading failed:', error);
                 });
         }
 
@@ -237,13 +246,23 @@ document.addEventListener('DOMContentLoaded', function () {
     hamburgerBtn.addEventListener('click', function () {
         hamburgerBtn.classList.toggle('active');
         mainNav.classList.toggle('show');
+        hamburgerBtn.setAttribute('aria-expanded', String(mainNav.classList.contains('show')));
     });
 
     mainNav.querySelectorAll('a').forEach(function (link) {
         link.addEventListener('click', function () {
             hamburgerBtn.classList.remove('active');
             mainNav.classList.remove('show');
+            hamburgerBtn.setAttribute('aria-expanded', 'false');
         });
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && mainNav.classList.contains('show')) {
+            hamburgerBtn.classList.remove('active');
+            mainNav.classList.remove('show');
+            hamburgerBtn.setAttribute('aria-expanded', 'false');
+            hamburgerBtn.focus();
+        }
     });
 });
 
@@ -263,6 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
     imageInput.multiple = true;
 
     uploadBox.addEventListener('click', function (event) {
+        if (event.target === imageInput) return;
         if (event.target.closest('.property-image-remove-btn')) return;
         if (event.target.closest('.property-image-preview-card')) return;
 

@@ -183,7 +183,8 @@
                                 <button type="submit"
                                         class="small-action-btn"
                                         formaction="{% url 'set_primary_image' image.pk %}"
-                                        formmethod="post"
+                                         formmethod="post"
+                                         formnovalidate
                                         data-confirm="Changing the primary image will send this listing back to admin review. Continue?">
                                     Set Primary
                                 </button>
@@ -192,7 +193,8 @@
                             <button type="submit"
                                     class="small-delete-btn"
                                     formaction="{% url 'delete_listing_image' image.pk %}"
-                                    formmethod="post"
+                                     formmethod="post"
+                                     formnovalidate
                                     data-confirm="Are you sure you want to delete this image?">
                                 Delete
                             </button>
@@ -214,6 +216,7 @@
                         <div class="selected-image-preview"></div>
                         <input type="file" name="new_images" multiple accept="image/*">
                     </div>
+                    {{ image_form.new_images.errors }}
                 </div>
 
                 <div class="form-group-title">Verification Documents</div>

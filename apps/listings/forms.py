@@ -128,18 +128,33 @@ class MultipleImageUploadForm(forms.Form):
         if len(images) > 15:
             raise forms.ValidationError("You can upload maximum 15 property images.")
 
-        for image in images:
-            if image.size > 5 * 1024 * 1024:
-                raise forms.ValidationError("Each image must be less than 5MB.")
+        return validate_property_images(images)
 
-            valid_content_types = [
-                'image/jpeg',
-                'image/png',
-                'image/jpg',
-                'image/webp',
-            ]
 
-            if image.content_type not in valid_content_types:
-                raise forms.ValidationError("Only JPG, PNG, and WEBP images are allowed.")
+def validate_property_images(images):
+    for image in images:
+        if image.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("Each image must be less than 5MB.")
 
-        return images
+        valid_content_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+        if image.content_type not in valid_content_types:
+            raise forms.ValidationError("Only JPG, PNG, and WEBP images are allowed.")
+
+        # Validate the actual file, not just the browser-supplied MIME type.
+        forms.ImageField().clean(image)
+
+    return images
+
+
+class ListingImageEditForm(forms.Form):
+    new_images = MultipleFileField(required=False)
+
+    def __init__(self, *args, current_image_count=0, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_image_count = current_image_count
+
+    def clean_new_images(self):
+        images = self.files.getlist('new_images')
+        if self.current_image_count + len(images) > 15:
+            raise forms.ValidationError('You can have maximum 15 images per listing.')
+        return validate_property_images(images)

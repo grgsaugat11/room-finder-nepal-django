@@ -127,7 +127,7 @@ class Listing(models.Model):
         ordering = ['-created_at']
 
     def clean(self):
-        if self.district and self.province:
+        if self.district_id and self.province_id:
             if self.district.province_id != self.province_id:
                 raise ValidationError("Selected district does not belong to selected province.")
 
@@ -149,13 +149,15 @@ class Listing(models.Model):
 
     @property
     def primary_image(self):
-        primary = self.images.filter(is_primary=True).first()
-        if primary:
-            return primary.image
-        first_image = self.images.first()
-        if first_image:
-            return first_image.image
+        images = list(self.images.all())
+        primary = next((image for image in images if image.is_primary), None)
+        if primary or images:
+            return (primary or images[0]).image
         return None
+
+    @property
+    def uses_sample_photos(self):
+        return any('sample-property-' in image.image.name for image in self.images.all())
 
 class ListingFacility(models.Model):
     listing = models.OneToOneField(
